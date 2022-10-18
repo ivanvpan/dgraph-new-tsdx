@@ -90,7 +90,7 @@ function resolvePathOrValue(context: Context, pathOrValue: string) {
 
 function resolveParams(context: Context, params: { [name: string]: any }) {
   return Object.fromEntries(
-    Object.entries(params).map(entry => [
+    Object.entries(params).map((entry) => [
       entry[0],
       resolvePathOrValue(context, entry[1]),
     ])
@@ -102,23 +102,30 @@ function executeStep(step: GraphStep, context: Context) {
   switch (type) {
     case 'graph':
       const name = step.name
-      if (!step.isTemplate) {
+
+      // It is not documented but graphs definitions without inputs are effectively "template" graphs.
+      if (step.isTemplate || (isArray(step.graphDef) && !step.inputs)) {
+        debug(`define template graph: ${step.name}`)
+        context.graphDefs[step.name] = step.graphDef
+      } else {
         let subGraph: Graph
+
+        // not a call to a saved subgraph
         if (isArray(step.graphDef)) {
-          // not a call to a saved subgraph
           subGraph = step.graphDef as Graph
         } else {
           subGraph = context.graphDefs[step.graphDef as string]
         }
         const inputs = resolveParams(context, step.inputs)
-        // this means that we want to map the "collection" input variable
+
+        // we want to iterate over the "collection" input variable
         if (step.collectionMode === 'map') {
           debug(
             `=== using graph ${name} to map ${
               step.inputs.collection
             }, inputs: ${JSON.stringify(inputs)}`
           )
-          context[name] = (inputs.collection as any).map(item => {
+          context[name] = (inputs.collection as any).map((item) => {
             const mapInputs = Object.assign({}, inputs, { item })
             return executeGraph(subGraph, {
               inputs: mapInputs,
@@ -136,9 +143,6 @@ function executeStep(step: GraphStep, context: Context) {
           })
           debug(`=== subgraph end: ${name}`)
         }
-      } else {
-        debug(`define template graph: ${step.name}`)
-        context.graphDefs[step.name] = step.graphDef
       }
       break
     case 'transform':
@@ -186,14 +190,14 @@ function executeStep(step: GraphStep, context: Context) {
 }
 
 function executeGraph(graph: Graph, context: Context) {
-  graph.forEach(step => executeStep(step, context))
+  graph.forEach((step) => executeStep(step, context))
   return omit(context, ['inputs', 'graphDefs']) // TODO hacky!
 }
 
 export default function externalExecute(
   graph: DbGraph,
   inputs: any,
-  debug = true
+  debug = false
 ) {
   outputOptions.enabled = debug
   const context: Context = {
