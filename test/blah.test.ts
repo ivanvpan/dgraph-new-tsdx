@@ -116,4 +116,17 @@ describe('Graph', () => {
     const result = executeGraph(graph as DbGraph, input)
     expect(result.theGoods.doubled).toBe(20)
   })
+
+  it('hides values from output when isHidden is specified', () => {
+    const graph = {
+      data: [Object.assign({isHidden: true}, DOUBLE_STEP)],
+    }
+    const input = {
+      doubleMe: 10,
+    }
+
+    const result = executeGraph(graph as DbGraph, input)
+
+    expect(result.doubled).toBeUndefined()
+  })
 })
