@@ -20,7 +20,7 @@ import { getValueAtPath } from './path-utils'
  *
  * @param {*} items
  */
-const extractNItems = (items) => {
+const extractNItems = items => {
   let result = items
   if (isObject(items)) {
     result = flattenDeep(values(items))
@@ -42,10 +42,11 @@ const vectorOpFnArgs = (fn, a, b) => {
   return result
 }
 
-
 // optionally accept a value; if undefined assume `true`
-const _filterFn = ({ path, value }) => item => !!(getValueAtPath(item, path) === (isUndefined(value) ? true : value))
-const _filterNotFn = ({ path, value }) => item => !(getValueAtPath(item, path) === (isUndefined(value) ? true : value))
+const _filterFn = ({ path, value }) => item =>
+  !!(getValueAtPath(item, path) === (isUndefined(value) ? true : value))
+const _filterNotFn = ({ path, value }) => item =>
+  !(getValueAtPath(item, path) === (isUndefined(value) ? true : value))
 
 const transforms = {
   addN: items => extractNItems(items).reduce((t, a) => t + a, 0),
@@ -53,16 +54,19 @@ const transforms = {
   orN: items => extractNItems(items).reduce((t, v) => t || v, false),
   concat: items => extractNItems(items).reduce((t, a) => t + a, ''),
   concatArrays: items => extractNItems(items).reduce((t, a) => t.concat(a), []),
-  filter: ({ collection, path, value }) => extractNItems(collection).filter(_filterFn({ path, value })),
-  filterNot: ({ collection, path, value }) => extractNItems(collection).filter(_filterNotFn({ path, value })),
-  find: ({ collection, propName, propValue }) => extractNItems(collection).find(item => item[propName] === propValue),
+  filter: ({ collection, path, value }) =>
+    extractNItems(collection).filter(_filterFn({ path, value })),
+  filterNot: ({ collection, path, value }) =>
+    extractNItems(collection).filter(_filterNotFn({ path, value })),
+  find: ({ collection, propName, propValue }) =>
+    extractNItems(collection).find(item => item[propName] === propValue),
 
   not: ({ item }) => isBoolean(item) && !item,
   ternary: ({ test, pass, fail }) => (test ? pass : fail),
   add: ({ a, b }) => a + b,
   sub: ({ a, b }) => a - b,
-  addFactor: ({ amt, factor }) => amt + (amt * factor),
-  subFactor: ({ amt, factor }) => amt - (amt * factor),
+  addFactor: ({ amt, factor }) => amt + amt * factor,
+  subFactor: ({ amt, factor }) => amt - amt * factor,
   mult: ({ amt, factor }) => amt * factor,
   div: ({ num, dem }) => num / dem,
   round: ({ amt }) => Math.round(amt),
@@ -78,25 +82,35 @@ const transforms = {
   clamp: ({ amt, min, max }) => Math.max(min, Math.min(max, amt)),
   roundCurrency: ({ amt }) => {
     let r = amt
-    try { r = Number(amt.toFixed(2)) } catch (error) { console.log(`unable to round ${amt}`) } // eslint-disable-line no-console
+    try {
+      r = Number(amt.toFixed(2))
+    } catch (error) {
+      console.log(`unable to round ${amt}`)
+    } // eslint-disable-line no-console
     return r
   },
   includes: ({ item, isIncludedIn }) => isIncludedIn.includes(item),
-  isNonEmptyString: ({ item }) => !!item && isString(item) && item.trim().length > 0,
+  isNonEmptyString: ({ item }) =>
+    !!item && isString(item) && item.trim().length > 0,
   isNull: ({ item }) => isNull(item),
 
-  map: ({ collection, fn, params }) => collection.map((item) => {
-    const args = mapValues(params, localPath => localPath === '_item_' ? item : getValueAtPath(item, localPath))
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    return transforms[fn](args)
-  }),
+  map: ({ collection, fn, params }) =>
+    collection.map(item => {
+      const args = mapValues(params, localPath =>
+        localPath === '_item_' ? item : getValueAtPath(item, localPath)
+      )
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      return transforms[fn](args)
+    }),
 
   vectorOp: ({ collectionA, collectionB, op }) => {
     const result = []
     const cA = extractNItems(collectionA)
     const cB = extractNItems(collectionB)
     if (cA.length !== cB.length) {
-      throw new Error(`vectorOp error: collections must be equal in length. Got a: ${cA.length}, b: ${cB.length}.`)
+      throw new Error(
+        `vectorOp error: collections must be equal in length. Got a: ${cA.length}, b: ${cB.length}.`
+      )
     }
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     if (!(op in transforms)) {
@@ -117,7 +131,8 @@ const transforms = {
   box: ({ value, propName }) => ({ [propName]: value }),
 
   // note currently can't get path values for a nested array of paths, so can only add one prop at a time.
-  addProp: ({ src, propName, propValue }) => merge({}, src, { [propName]: propValue }),
+  addProp: ({ src, propName, propValue }) =>
+    merge({}, src, { [propName]: propValue }),
 }
 
 export default transforms

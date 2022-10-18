@@ -33,7 +33,9 @@ export function getValueAtPathWithArraySupport(obj: any, path: string) {
     const matches = path.match(/^(.+\.)?\*(\..+)?$/)
     if (matches && matches.length === 3) {
       // remove dots where needed ...
-      const pathToArray = matches[1] ? matches[1].substring(0, matches[1].length - 1) : ''
+      const pathToArray = matches[1]
+        ? matches[1].substring(0, matches[1].length - 1)
+        : ''
       const pathAfterArray = matches[2] ? matches[2].substring(1) : ''
 
       // if pathToArray is empty, the obj itself is the array
@@ -44,12 +46,19 @@ export function getValueAtPathWithArraySupport(obj: any, path: string) {
         array = array['*']
       }
 
-      if (!_.isArray(array)) { // console.log('---')
+      if (!_.isArray(array)) {
+        // console.log('---')
         // console.log({ path, pathToArray, obj, array })
         // console.log('---')
-        throw new Error(`getValueAtPathWithArraySupport: Value at '${pathToArray}' is not an array. Passed path '${path}', obj ${JSON.stringify(obj, null, 2)}`)
+        throw new Error(
+          `getValueAtPathWithArraySupport: Value at '${pathToArray}' is not an array. Passed path '${path}', obj ${JSON.stringify(
+            obj,
+            null,
+            2
+          )}`
+        )
       } else {
-        result = array.map((item) => {
+        result = array.map(item => {
           if (pathAfterArray.length) {
             return getValueAtPath(item, pathAfterArray)
           }
@@ -57,7 +66,9 @@ export function getValueAtPathWithArraySupport(obj: any, path: string) {
         })
       }
     } else {
-      throw new Error(`Unsupported array syntax in path '${path}'. Only a single array ".*." can be iterated over.`)
+      throw new Error(
+        `Unsupported array syntax in path '${path}'. Only a single array ".*." can be iterated over.`
+      )
     }
   } else {
     result = getValueAtPath(obj, path)

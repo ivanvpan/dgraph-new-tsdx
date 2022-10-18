@@ -1,7 +1,25 @@
-import { sum } from '../src';
+import executeGraph, { DbGraph } from '../src'
 
-describe('blah', () => {
-  it('works', () => {
-    expect(sum(1, 1)).toEqual(2);
-  });
-});
+describe('Graph', () => {
+  it('executes basic transform', () => {
+    const graph = {
+      data: [
+        {
+          name: 'doubled',
+          type: 'transform',
+          fn: 'mult',
+          params: {
+            amt: 'inputs.doubleMe',
+            factor: 2,
+          },
+        },
+      ],
+    }
+    const input = {
+      doubleMe: 10,
+    }
+    const result = executeGraph(graph as DbGraph, input)
+
+    expect(result.doubled).toBe(20)
+  })
+})
