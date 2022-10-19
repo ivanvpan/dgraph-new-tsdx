@@ -69,7 +69,7 @@ describe('Graph', () => {
           name: 'lonelySouls',
           type: 'graph',
           graphDef: [DOUBLE_STEP],
-          isTemplate: true
+          isTemplate: true,
         },
         {
           name: 'theGoods',
@@ -119,7 +119,7 @@ describe('Graph', () => {
 
   it('hides values from output when isHidden is specified', () => {
     const graph = {
-      data: [Object.assign({isHidden: true}, DOUBLE_STEP)],
+      data: [Object.assign({ isHidden: true }, DOUBLE_STEP)],
     }
     const input = {
       doubleMe: 10,
@@ -130,9 +130,43 @@ describe('Graph', () => {
     expect(result.doubled).toBeUndefined()
   })
 
-  it('executes node correctly even if they are not in order of dependency', () => {
+  it('Runs subgraph definition first', () => {
     const graph = {
       data: [
+        {
+          name: 'graphResult',
+          type: 'graph',
+          graphDef: 'lonely-souls',
+          inputs: {
+            doubleMe: 'inputs.doubleMe',
+          },
+        },
+        {
+          name: 'lonely-souls',
+          type: 'graph',
+          graphDef: [DOUBLE_STEP],
+          isTemplate: true,
+        },
+      ],
+    }
+
+    const input = {
+      doubleMe: 10,
+    }
+
+    const result = executeGraph(graph as DbGraph, input)
+    expect(result.graphResult.doubled).toBe(20)
+  })
+
+  it('executes subgraph correctly even if they are not in order of dependency', () => {
+    const graph = {
+      data: [
+        {
+          name: 'lonely-souls',
+          type: 'graph',
+          graphDef: [DOUBLE_STEP],
+          isTemplate: true,
+        },
         {
           name: 'doubled',
           type: 'transform',
@@ -140,25 +174,18 @@ describe('Graph', () => {
           params: {
             amt: 'lonelySouls.doubled',
             factor: 2,
-          }
+          },
         },
         {
           name: 'lonelySouls',
           type: 'graph',
           graphDef: 'lonely-souls',
           inputs: {
-            doubleMe: 'inputs.doubleMe'
-          }
-        },
-        {
-          name: 'lonely-souls',
-          type: 'graph',
-          graphDef: [DOUBLE_STEP],
-          isTemplate: true
+            doubleMe: 'inputs.doubleMe',
+          },
         },
       ],
     }
-
 
     const input = {
       doubleMe: 10,
@@ -166,5 +193,29 @@ describe('Graph', () => {
 
     const result = executeGraph(graph as DbGraph, input)
     expect(result.doubled).toBe(40)
+  })
+
+  it('executes non-subgraph dependencies correctly even if they are not in order', () => {
+    const graph = {
+      data: [
+        {
+          name: 'doubledAgain',
+          type: 'transform',
+          fn: 'mult',
+          params: {
+            amt: 'doubled',
+            factor: 2,
+          },
+        },
+        DOUBLE_STEP,
+      ],
+    }
+
+    const input = {
+      doubleMe: 10,
+    }
+
+    const result = executeGraph(graph as DbGraph, input)
+    expect(result.doubledAgain).toBe(40)
   })
 })

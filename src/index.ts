@@ -92,8 +92,9 @@ function resolvePathOrValue(
     // is linear.
     if (resolved === undefined) {
       const dependency = graph.find(step => step.name === toPath(pathOrValue)[0])
-      if (dependency && dependency.type === 'graph' && dependency.inputs) {
-        STEP_TYPE_RESOLVERS['graph'](dependency, graph, context)
+      // if (dependency && dependency.type === 'graph' && dependency.inputs) {
+      if (dependency) {
+        STEP_TYPE_RESOLVERS[dependency.type](dependency, graph, context)
       }
       resolved = getValueAtPathWithArraySupport(context, pathOrValue)
     }
@@ -136,6 +137,14 @@ function setValueInContext(
 }
 
 const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
+  comments: () => {},
+  echo: (step: GraphStep, _graph: Graph, context: Context) => {
+    const value = resolvePathOrValue(_graph, context, 'inputs.' + step.name)
+
+    setValueInContext(context, step.name, value)
+
+    debug(`${step.name} = ${step.mirror}`)
+  },
   graph: (step: GraphStep, graph: Graph, context: Context) => {
     const name = step.name
 
