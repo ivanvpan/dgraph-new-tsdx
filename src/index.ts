@@ -1,4 +1,5 @@
 import isArray from 'lodash/isArray'
+import toPath from 'lodash/toPath'
 import isString from 'lodash/isString'
 import transforms from './transforms'
 import { getValueAtPathWithArraySupport } from './path-utils'
@@ -75,10 +76,28 @@ interface GraphStep {
   mirror?: string
 }
 
-function resolvePathOrValue(context: Context, pathOrValue: string) {
+function resolvePathOrValue(
+  graph: Graph,
+  context: Context,
+  pathOrValue: string
+) {
   let resolved: any | undefined = pathOrValue
+
   if (isString(pathOrValue)) {
     resolved = getValueAtPathWithArraySupport(context, pathOrValue)
+
+    // If the value does not resolve to some precomputed value we need to check if there
+    // is a step somewhere ahead in the graph that needs to run first. This is because
+    // the original dgraph is needlessly non-linear. Dependencies could be anywhere but the execution
+    // is linear.
+    if (resolved === undefined) {
+      const dependency = graph.find(step => step.name === toPath(pathOrValue)[0])
+      if (dependency && dependency.type === 'graph' && dependency.inputs) {
+        STEP_TYPE_RESOLVERS['graph'](dependency, graph, context)
+      }
+      resolved = getValueAtPathWithArraySupport(context, pathOrValue)
+    }
+
     if (resolved === undefined) {
       console.warn(
         `Could not resolve value ${pathOrValue}, returning string itself.`
@@ -86,19 +105,29 @@ function resolvePathOrValue(context: Context, pathOrValue: string) {
       resolved = pathOrValue
     }
   }
+
   return resolved
 }
 
-function resolveParams(context: Context, params: { [name: string]: any }) {
+function resolveParams(
+  graph: Graph,
+  context: Context,
+  params: { [name: string]: any }
+) {
   return Object.fromEntries(
     Object.entries(params).map((entry) => [
       entry[0],
-      resolvePathOrValue(context, entry[1]),
+      resolvePathOrValue(graph, context, entry[1]),
     ])
   )
 }
 
-function setValueInContext(context: Context, key: string, value: any, excludeFromOutput = false) {
+function setValueInContext(
+  context: Context,
+  key: string,
+  value: any,
+  excludeFromOutput = false
+) {
   context[key] = value
 
   if (!excludeFromOutput) {
@@ -106,90 +135,94 @@ function setValueInContext(context: Context, key: string, value: any, excludeFro
   }
 }
 
-function executeStep(step: GraphStep, context: Context) {
-  const type = step.type
-  switch (type) {
-    case 'graph':
-      const name = step.name
+const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
+  graph: (step: GraphStep, graph: Graph, context: Context) => {
+    const name = step.name
 
-      // It is not documented but graphs definitions without inputs are effectively "template" graphs.
-      if (step.isTemplate || (isArray(step.graphDef) && !step.inputs)) {
-        debug(`define template graph: ${step.name}`)
-        context.graphDefs[step.name] = step.graphDef
+    // It is not documented but graphs definitions without inputs are effectively "template" graphs.
+    if (step.isTemplate || (isArray(step.graphDef) && !step.inputs)) {
+      debug(`define template graph: ${step.name}`)
+      context.graphDefs[step.name] = step.graphDef
+    } else {
+      let subGraph: Graph
+
+      // graph that could be called in place
+      if (isArray(step.graphDef)) {
+        subGraph = step.graphDef as Graph
       } else {
-        let subGraph: Graph
-
-        // not a call to a saved subgraph
-        if (isArray(step.graphDef)) {
-          subGraph = step.graphDef as Graph
-        } else {
-          subGraph = context.graphDefs[step.graphDef as string]
+        subGraph = context.graphDefs[step.graphDef as string]
+        if (!subGraph) {
+          throw new Error(
+            `Trying to execute a non-existant graph '${step.graphDef}'`
+          )
         }
-        const inputs = resolveParams(context, step.inputs)
+      }
+      const inputs = resolveParams(graph, context, step.inputs)
 
-        // we want to iterate over the "collection" input variable
-        if (step.collectionMode === 'map') {
-          debug(
-            `=== using graph ${name} to map ${
-              step.inputs.collection
-            }, inputs: ${JSON.stringify(inputs)}`
-          )
-          const result = (inputs.collection as any).map((item) => {
-            const mapInputs = Object.assign({}, inputs, { item })
-            return executeGraph(subGraph, {
-              inputs: mapInputs,
-              graphDefs: context.graphDefs,
-              _output: {}
-            })
-          })
-          setValueInContext(context, step.name, result, step.isHidden)
-          debug(`=== mapping subgraph end: ${name}`)
-        } else {
-          debug(
-            `=== subgraph start: ${name}. inputs: ${JSON.stringify(inputs)}`
-          )
-          const result = executeGraph(subGraph, {
-            inputs,
+      // we want to iterate over the "collection" input variable
+      if (step.collectionMode === 'map') {
+        debug(
+          `=== using graph ${name} to map ${
+            step.inputs.collection
+          }, inputs: ${JSON.stringify(inputs)}`
+        )
+        const result = (inputs.collection as any).map((item) => {
+          const mapInputs = Object.assign({}, inputs, { item })
+          return executeGraph(subGraph, {
+            inputs: mapInputs,
             graphDefs: context.graphDefs,
-            _output: {}
+            _output: {},
           })
-          setValueInContext(context, step.name, result, step.isHidden)
-          debug(`=== subgraph end: ${name}`)
-        }
+        })
+        setValueInContext(context, step.name, result, step.isHidden)
+        debug(`=== mapping subgraph end: ${name}`)
+      } else { // execute the graph normally
+        debug(`=== subgraph start: ${name}. inputs: ${JSON.stringify(inputs)}`)
+        const result = executeGraph(subGraph, {
+          inputs,
+          graphDefs: context.graphDefs,
+          _output: {},
+        })
+        setValueInContext(context, step.name, result, step.isHidden)
+        debug(`=== subgraph end: ${name}`)
       }
-      break
-    case 'transform': {
-      const fn = transforms[step.fn]
-      if (!fn) {
-        throw new Error(`No such function ${step.fn}`)
-      }
-      const params = resolveParams(context, step.params)
-
-      setValueInContext(context, step.name, transforms[step.fn](params), step.isHidden)
-      
-      debug(`${step.name} = ${step.fn}(${JSON.stringify(params)})`)
-      break
     }
-    case 'dereference': {
-      const theObject = resolvePathOrValue(context, step.objectPath)
-      const prop = resolvePathOrValue(context, step.propNamePath)
-
-      setValueInContext(context, step.name, theObject[prop], step.isHidden)
-
-      debug(`${step.name} = ${step.objectPath}['${step.propNamePath}']`)
-      break
+  },
+  transform: (step: GraphStep, graph: Graph, context: Context) => {
+    const fn = transforms[step.fn]
+    if (!fn) {
+      throw new Error(`No such function ${step.fn}`)
     }
-    case 'alias': {
-      const value = resolvePathOrValue(context, step.mirror)
+    const params = resolveParams(graph, context, step.params)
 
-      setValueInContext(context, step.name, value, step.isHidden)
+    setValueInContext(
+      context,
+      step.name,
+      transforms[step.fn](params),
+      step.isHidden
+    )
 
-      debug(`${step.name} = ${step.mirror}`)
-      break
-    }
-    case 'branch': {
+    debug(`${step.name} = ${step.fn}(${JSON.stringify(params)})`)
+  },
+  dereference: (step: GraphStep, graph: Graph, context: Context) => {
+    const theObject = resolvePathOrValue(graph, context, step.objectPath)
+    const prop = resolvePathOrValue(graph, context, step.propNamePath)
+
+    setValueInContext(context, step.name, theObject[prop], step.isHidden)
+
+    debug(`${step.name} = ${step.objectPath}['${step.propNamePath}']`)
+  },
+  alias: (step: GraphStep, graph: Graph, context: Context) => {
+    const value = resolvePathOrValue(graph, context, step.mirror)
+
+    setValueInContext(context, step.name, value, step.isHidden)
+
+    debug(`${step.name} = ${step.mirror}`)
+  },
+  branch: (step: GraphStep, graph: Graph, context: Context) => {
+
       const DEFAULT = '_default_'
-      const testValue = resolvePathOrValue(context, step.test)
+      const testValue = resolvePathOrValue(graph, context, step.test)
 
       let index = step.cases.indexOf(testValue)
       if (index === -1) {
@@ -197,24 +230,28 @@ function executeStep(step: GraphStep, context: Context) {
       }
 
       const nodeName = step.nodeNames[index]
-      const resolvedNodeName = resolvePathOrValue(context, nodeName)
+      const resolvedNodeName = resolvePathOrValue(graph, context, nodeName)
       setValueInContext(context, step.name, resolvedNodeName, step.isHidden)
       debug(`${step.name} = "${resolvedNodeName.resolved}"`)
-      break
-    }
-    case 'static': {
-      setValueInContext(context, step.name, step.value, step.isHidden)
-      debug(`${step.name} = "${step.value}"`)
-      break
-    }
-    default: {
-      throw new Error(`Unknown step type: ${step.type}`)
-    }
+  },
+  static: (step: GraphStep, _graph: Graph, context: Context) => {
+    setValueInContext(context, step.name, step.value, step.isHidden)
+    debug(`${step.name} = "${step.value}"`)
   }
 }
 
-function executeGraph(graph: Graph, context: Context): Output  {
-  graph.forEach((step) => executeStep(step, context))
+function executeStep(step: GraphStep, graph: Graph, context: Context) {
+  const type = step.type
+  const resolver = STEP_TYPE_RESOLVERS[type]
+  if (!resolver) {
+    throw new Error(`Unknown step type: ${step.type}`)
+  }
+
+  resolver(step, graph, context)
+}
+
+function executeGraph(graph: Graph, context: Context): Output {
+  graph.forEach((step) => executeStep(step, graph, context))
   return context._output
 }
 
@@ -228,7 +265,7 @@ export default function externalExecute(
     // inputs: resDayratesBaseDGraphInputs,
     inputs,
     graphDefs: {},
-    _output: {}
+    _output: {},
   }
   return executeGraph(graph.data, context)
 }

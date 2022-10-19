@@ -129,4 +129,41 @@ describe('Graph', () => {
 
     expect(result.doubled).toBeUndefined()
   })
+
+  it('executes node correctly even if they are not in order of dependency', () => {
+    const graph = {
+      data: [
+        {
+          name: 'lonely-souls',
+          type: 'graph',
+          graphDef: [DOUBLE_STEP],
+          isTemplate: true
+        },
+        {
+          name: 'doubled',
+          type: 'transform',
+          fn: 'mult',
+          params: {
+            amt: 'lonelySouls.doubled',
+            factor: 2,
+          }
+        },
+        {
+          name: 'lonelySouls',
+          type: 'graph',
+          graphDef: 'lonely-souls',
+          inputs: {
+            doubleMe: 'inputs.doubleMe'
+          }
+        },
+      ],
+    }
+
+    const input = {
+      doubleMe: 10,
+    }
+
+    const result = executeGraph(graph as DbGraph, input)
+    expect(result.doubled).toBe(40)
+  })
 })

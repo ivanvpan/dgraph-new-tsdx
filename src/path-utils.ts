@@ -1,11 +1,14 @@
-import * as _ from 'lodash'
+import toPath from 'lodash/toPath'
+import isArray from 'lodash/isArray'
+import isObject from 'lodash/isObject'
+import has from 'lodash/has'
 
 export function getValueAtPath(obj: any, path: string) {
-  const bits = _.toPath(path)
+  const bits = toPath(path)
   let v = obj
   let p = bits.shift()
   while (bits.length) {
-    if (_.has(v, p)) {
+    if (has(v, p)) {
       v = v[p]
       p = bits.shift()
     } else {
@@ -42,11 +45,11 @@ export function getValueAtPathWithArraySupport(obj: any, path: string) {
       let array = pathToArray.length ? getValueAtPath(obj, pathToArray) : obj
 
       // TODO: not sure why/where/how an object with prop '*' is being created. work this out.
-      if (_.isObject(array) && _.isArray(array['*'])) {
+      if (isObject(array) && isArray(array['*'])) {
         array = array['*']
       }
 
-      if (!_.isArray(array)) {
+      if (!isArray(array)) {
         // console.log('---')
         // console.log({ path, pathToArray, obj, array })
         // console.log('---')
