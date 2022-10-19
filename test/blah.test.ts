@@ -134,12 +134,6 @@ describe('Graph', () => {
     const graph = {
       data: [
         {
-          name: 'lonely-souls',
-          type: 'graph',
-          graphDef: [DOUBLE_STEP],
-          isTemplate: true
-        },
-        {
           name: 'doubled',
           type: 'transform',
           fn: 'mult',
@@ -156,8 +150,15 @@ describe('Graph', () => {
             doubleMe: 'inputs.doubleMe'
           }
         },
+        {
+          name: 'lonely-souls',
+          type: 'graph',
+          graphDef: [DOUBLE_STEP],
+          isTemplate: true
+        },
       ],
     }
+
 
     const input = {
       doubleMe: 10,

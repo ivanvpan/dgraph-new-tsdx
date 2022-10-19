@@ -139,6 +139,9 @@ const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
   graph: (step: GraphStep, graph: Graph, context: Context) => {
     const name = step.name
 
+    // TODO logic that recognizes what sort of 'graph' step it is repeated in a few places
+    // and could be more DRY and more formalized.
+
     // It is not documented but graphs definitions without inputs are effectively "template" graphs.
     if (step.isTemplate || (isArray(step.graphDef) && !step.inputs)) {
       debug(`define template graph: ${step.name}`)
@@ -159,7 +162,7 @@ const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
       }
       const inputs = resolveParams(graph, context, step.inputs)
 
-      // we want to iterate over the "collection" input variable
+      // the step wants to iterate over the "collection" input variable
       if (step.collectionMode === 'map') {
         debug(
           `=== using graph ${name} to map ${
@@ -240,6 +243,20 @@ const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
   }
 }
 
+// Because subgraph definitions could be anywhere we will just bring them up to the top.
+// The function does not modify the passed graph but returns a copy.
+function hoistSubgraphDefinitions(graph: Graph) {
+  const newGraph: Graph = []
+  graph.forEach(step => {
+    if (step.type === 'graph' && (step.isTemplate || (isArray(step.graphDef) && !step.inputs))) {
+      newGraph.unshift(step)
+    } else {
+      newGraph.push(step)
+    }
+  })
+  return newGraph
+}
+
 function executeStep(step: GraphStep, graph: Graph, context: Context) {
   const type = step.type
   const resolver = STEP_TYPE_RESOLVERS[type]
@@ -251,7 +268,8 @@ function executeStep(step: GraphStep, graph: Graph, context: Context) {
 }
 
 function executeGraph(graph: Graph, context: Context): Output {
-  graph.forEach((step) => executeStep(step, graph, context))
+  const withHoistedDefinitions = hoistSubgraphDefinitions(graph)
+  withHoistedDefinitions.forEach((step) => executeStep(step, graph, context))
   return context._output
 }
 
