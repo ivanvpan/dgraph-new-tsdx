@@ -23,6 +23,7 @@ type Output = { [outputKey: string]: any }
 interface Context {
   inputs: { [input: string]: any }
   graphDefs: { [graphName: string]: any }
+  executedSteps: { [stepName: string]: true}
   _output: Output
   [field: string]: any
 }
@@ -100,8 +101,8 @@ function resolvePathOrValue(
     }
 
     if (resolved === undefined) {
-      console.warn(
-        `Could not resolve value ${pathOrValue}, returning string itself.`
+      debug(
+        `Could not resolve value ${pathOrValue}, returning string itself.`, true
       )
       resolved = pathOrValue
     }
@@ -182,6 +183,7 @@ const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
           const mapInputs = Object.assign({}, inputs, { item })
           return executeGraph(subGraph, {
             inputs: mapInputs,
+            executedSteps: {},
             graphDefs: context.graphDefs,
             _output: {},
           })
@@ -192,6 +194,7 @@ const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
         debug(`=== subgraph start: ${name}. inputs: ${JSON.stringify(inputs)}`)
         const result = executeGraph(subGraph, {
           inputs,
+          executedSteps: {},
           graphDefs: context.graphDefs,
           _output: {},
         })
@@ -267,6 +270,9 @@ function hoistSubgraphDefinitions(graph: Graph) {
 }
 
 function executeStep(step: GraphStep, graph: Graph, context: Context) {
+  if (context.executedSteps[step.name]) {
+    return
+  }
   const type = step.type
   const resolver = STEP_TYPE_RESOLVERS[type]
   if (!resolver) {
@@ -274,6 +280,7 @@ function executeStep(step: GraphStep, graph: Graph, context: Context) {
   }
 
   resolver(step, graph, context)
+  context.executedSteps[step.name] = true
 }
 
 function executeGraph(graph: Graph, context: Context): Output {
@@ -291,6 +298,7 @@ export default function externalExecute(
   const context: Context = {
     // inputs: resDayratesBaseDGraphInputs,
     inputs,
+    executedSteps: {},
     graphDefs: {},
     _output: {},
   }
