@@ -339,7 +339,9 @@ function executeStep(
   context: Context,
   runInParentContext = false
 ) {
+  console.log(step, graph, context, runInParentContext)
   if (context.executedSteps[step.name]) {
+    console.log('already ran', step.name)
     return
   }
   context.executedSteps[step.name] = true
