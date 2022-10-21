@@ -19,7 +19,7 @@ describe('Graph', () => {
       doubleMe: 10,
     }
 
-    const result = executeGraph(graph as DbGraph, input)
+    const result = executeGraph(graph as DbGraph, input, true)
 
     expect(result.doubled).toBe(20)
   })
@@ -44,7 +44,7 @@ describe('Graph', () => {
     const graph = {
       data: [
         {
-          name: 'lonelySouls',
+          name: 'doubler',
           type: 'graph',
           graphDef: [DOUBLE_STEP],
           inputs: {
@@ -59,14 +59,14 @@ describe('Graph', () => {
     }
     const result = executeGraph(graph as DbGraph, input)
 
-    expect(result.lonelySouls.doubled).toBe(20)
+    expect(result.doubler.doubled).toBe(20)
   })
 
   it('executes a template subgraph', () => {
     const graph = {
       data: [
         {
-          name: 'lonelySouls',
+          name: 'doubler',
           type: 'graph',
           graphDef: [DOUBLE_STEP],
           isTemplate: true,
@@ -74,7 +74,7 @@ describe('Graph', () => {
         {
           name: 'theGoods',
           type: 'graph',
-          graphDef: 'lonelySouls',
+          graphDef: 'doubler',
           inputs: {
             doubleMe: 'inputs.doubleMe',
           },
@@ -94,14 +94,14 @@ describe('Graph', () => {
     const graph = {
       data: [
         {
-          name: 'lonelySouls',
+          name: 'doubler',
           type: 'graph',
           graphDef: [DOUBLE_STEP],
         },
         {
           name: 'theGoods',
           type: 'graph',
-          graphDef: 'lonelySouls',
+          graphDef: 'doubler',
           inputs: {
             doubleMe: 'inputs.doubleMe',
           },
@@ -217,5 +217,49 @@ describe('Graph', () => {
 
     const result = executeGraph(graph as DbGraph, input)
     expect(result.doubledAgain).toBe(40)
+  })
+
+  fit('executes a subgraph with current runtime when it is invoked directly', () => {
+    const graph = {
+      data: [
+        {
+          name: 'the-doubler',
+          type: 'graph',
+          graphDef: [
+            {
+              name: 'doubled',
+              type: 'transform',
+              fn: 'mult',
+              params: {
+                amt: 'inputs.summed',
+                factor: 2,
+              },
+            },
+          ],
+        },
+        {
+          name: 'doubled',
+          type: 'alias',
+          mirror: 'the-doubler.doubled'
+        },
+        {
+          name: 'summed',
+          type: 'transform',
+          fn: 'add',
+          params: {
+            a: 'inputs.sumAndDoubleMe',
+            b: 5,
+          },
+        },
+      ],
+    }
+
+    const input = {
+      sumAndDoubleMe: 10,
+    }
+
+    const result = executeGraph(graph as DbGraph, input, true)
+    console.log(result)
+    expect(result.quadrupled).toBe(40)
   })
 })

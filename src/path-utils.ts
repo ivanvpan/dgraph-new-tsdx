@@ -54,11 +54,7 @@ export function getValueAtPathWithArraySupport(obj: any, path: string) {
         // console.log({ path, pathToArray, obj, array })
         // console.log('---')
         throw new Error(
-          `getValueAtPathWithArraySupport: Value at '${pathToArray}' is not an array. Passed path '${path}', obj ${JSON.stringify(
-            obj,
-            null,
-            2
-          )}`
+          `getValueAtPathWithArraySupport: Value at '${pathToArray}' is not an array. Passed path '${path}'}`
         )
       } else {
         result = array.map(item => {

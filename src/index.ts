@@ -9,9 +9,11 @@ let outputOptions = {
   contextName: '[dgraph-new]',
 }
 
-function debug(msg: string, warning = false) {
+function debug(msg: string | Error, warning = false) {
   if (outputOptions.enabled) {
-    if (warning) {
+    if (msg instanceof Error) {
+      console.error(msg.message)
+    } else if (warning) {
       console.warn(outputOptions.contextName, msg)
     } else {
       console.log(outputOptions.contextName, msg)
@@ -21,11 +23,13 @@ function debug(msg: string, warning = false) {
 
 type Output = { [outputKey: string]: any }
 interface Context {
-  inputs: { [input: string]: any }
   graphDefs: { [graphName: string]: any }
-  executedSteps: { [stepName: string]: true}
-  _output: Output
-  [field: string]: any
+  executedSteps: { [stepName: string]: true }
+  runtimeValues: {
+    inputs: { [input: string]: any }
+    [field: string]: any
+  }
+  output: Output
 }
 
 type StepType =
@@ -82,27 +86,62 @@ function resolvePathOrValue(
   context: Context,
   pathOrValue: string
 ) {
+  function tryResolving(obj, porv) {
+    try {
+      return getValueAtPathWithArraySupport(obj, porv)
+    } catch (error) {
+      debug(error)
+    }
+  }
+
   let resolved: any | undefined = pathOrValue
 
   if (isString(pathOrValue)) {
-    resolved = getValueAtPathWithArraySupport(context, pathOrValue)
+    resolved = tryResolving(context.runtimeValues, pathOrValue)
+
+    if (resolved === undefined && pathOrValue.startsWith('inputs.')) {
+      const pathWithoutInputSegment = toPath(pathOrValue)
+        .slice(1)
+        .join('.')
+      resolved = tryResolving(context.runtimeValues, pathWithoutInputSegment)
+    }
 
     // If the value does not resolve to some precomputed value we need to check if there
     // is a step somewhere ahead in the graph that needs to run first. This is because
     // the original dgraph is needlessly non-linear. Dependencies could be anywhere but the execution
     // is linear.
     if (resolved === undefined) {
-      const dependency = graph.find(step => step.name === toPath(pathOrValue)[0])
-      // if (dependency && dependency.type === 'graph' && dependency.inputs) {
+      const dependency = graph.find(
+        step => step.name === toPath(pathOrValue)[0]
+      )
       if (dependency) {
         STEP_TYPE_RESOLVERS[dependency.type](dependency, graph, context)
+        resolved = tryResolving(context.runtimeValues, pathOrValue)
       }
-      resolved = getValueAtPathWithArraySupport(context, pathOrValue)
+    }
+
+    // And yet another way to call subgraphs is by just calling it directly and
+    // implicitly pass the whole state of the current context. The current context,
+    // though, will be referenced by `inputs.`. (ノಠ益ಠ)ノ彡┻━┻
+    if (resolved === undefined) {
+      const firstSegment = toPath(pathOrValue)[0]
+      const dependency = context.graphDefs[firstSegment]
+      if (dependency) {
+        const graphStep: GraphStep = {
+          name: firstSegment,
+          type: 'graph',
+          graphDef: dependency,
+          inputs: {},
+        }
+        executeStep(graphStep, graph, context, true)
+        resolved = tryResolving(context.runtimeValues, pathOrValue)
+      }
     }
 
     if (resolved === undefined) {
       debug(
-        `Could not resolve value ${pathOrValue}, returning string itself.`, true
+        `Could not resolve value ${pathOrValue}, returning string itself.`,
+        true
       )
       resolved = pathOrValue
     }
@@ -117,7 +156,7 @@ function resolveParams(
   params: { [name: string]: any }
 ) {
   return Object.fromEntries(
-    Object.entries(params).map((entry) => [
+    Object.entries(params).map(entry => [
       entry[0],
       resolvePathOrValue(graph, context, entry[1]),
     ])
@@ -130,23 +169,28 @@ function setValueInContext(
   value: any,
   excludeFromOutput = false
 ) {
-  context[key] = value
+  context.runtimeValues[key] = value
 
   if (!excludeFromOutput) {
-    context._output[key] = value
+    context.output[key] = value
   }
 }
 
-const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
+const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
   comments: () => {},
   echo: (step: GraphStep, _graph: Graph, context: Context) => {
     const value = resolvePathOrValue(_graph, context, 'inputs.' + step.name)
 
     setValueInContext(context, step.name, value)
 
-    debug(`${step.name} = ${step.mirror}`)
+    debug(`${step.name} = ${JSON.stringify(value)}`)
   },
-  graph: (step: GraphStep, graph: Graph, context: Context) => {
+  graph: (
+    step: GraphStep,
+    graph: Graph,
+    context: Context,
+    runInParentContext = false
+  ) => {
     const name = step.name
 
     // TODO logic that recognizes what sort of 'graph' step it is repeated in a few places
@@ -179,24 +223,42 @@ const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
             step.inputs.collection
           }, inputs: ${JSON.stringify(inputs)}`
         )
-        const result = (inputs.collection as any).map((item) => {
+        const result = (inputs.collection as any).map(item => {
           const mapInputs = Object.assign({}, inputs, { item })
           return executeGraph(subGraph, {
-            inputs: mapInputs,
             executedSteps: {},
             graphDefs: context.graphDefs,
-            _output: {},
+            runtimeValues: {
+              inputs: mapInputs,
+            },
+            output: {},
           })
         })
         setValueInContext(context, step.name, result, step.isHidden)
         debug(`=== mapping subgraph end: ${name}`)
-      } else { // execute the graph normally
+      } else if (runInParentContext) {
         debug(`=== subgraph start: ${name}. inputs: ${JSON.stringify(inputs)}`)
-        const result = executeGraph(subGraph, {
-          inputs,
+        const graphConcat = [].concat(graph, subGraph)
+        const result = executeGraph(graphConcat, {
           executedSteps: {},
           graphDefs: context.graphDefs,
-          _output: {},
+          runtimeValues: {
+            inputs,
+          },
+          output: {},
+        })
+        setValueInContext(context, step.name, result, step.isHidden)
+        debug(`=== subgraph end: ${name}`)
+      } else {
+        // execute the graph normally
+        debug(`=== subgraph start: ${name}. inputs: ${JSON.stringify(inputs)}`)
+        const result = executeGraph(subGraph, {
+          executedSteps: {},
+          graphDefs: context.graphDefs,
+          runtimeValues: {
+            inputs,
+          },
+          output: {},
         })
         setValueInContext(context, step.name, result, step.isHidden)
         debug(`=== subgraph end: ${name}`)
@@ -235,24 +297,23 @@ const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
     debug(`${step.name} = ${step.mirror}`)
   },
   branch: (step: GraphStep, graph: Graph, context: Context) => {
+    const DEFAULT = '_default_'
+    const testValue = resolvePathOrValue(graph, context, step.test)
 
-      const DEFAULT = '_default_'
-      const testValue = resolvePathOrValue(graph, context, step.test)
+    let index = step.cases.indexOf(testValue)
+    if (index === -1) {
+      index = step.cases.indexOf(DEFAULT)
+    }
 
-      let index = step.cases.indexOf(testValue)
-      if (index === -1) {
-        index = step.cases.indexOf(DEFAULT)
-      }
-
-      const nodeName = step.nodeNames[index]
-      const resolvedNodeName = resolvePathOrValue(graph, context, nodeName)
-      setValueInContext(context, step.name, resolvedNodeName, step.isHidden)
-      debug(`${step.name} = "${resolvedNodeName.resolved}"`)
+    const nodeName = step.nodeNames[index]
+    const resolvedNodeName = resolvePathOrValue(graph, context, nodeName)
+    setValueInContext(context, step.name, resolvedNodeName, step.isHidden)
+    debug(`${step.name} = "${resolvedNodeName.resolved}"`)
   },
   static: (step: GraphStep, _graph: Graph, context: Context) => {
     setValueInContext(context, step.name, step.value, step.isHidden)
     debug(`${step.name} = "${step.value}"`)
-  }
+  },
 }
 
 // Because subgraph definitions could be anywhere we will just bring them up to the top.
@@ -260,7 +321,10 @@ const STEP_TYPE_RESOLVERS: {[stepType: string]: Function} = {
 function hoistSubgraphDefinitions(graph: Graph) {
   const newGraph: Graph = []
   graph.forEach(step => {
-    if (step.type === 'graph' && (step.isTemplate || (isArray(step.graphDef) && !step.inputs))) {
+    if (
+      step.type === 'graph' &&
+      (step.isTemplate || (isArray(step.graphDef) && !step.inputs))
+    ) {
       newGraph.unshift(step)
     } else {
       newGraph.push(step)
@@ -269,38 +333,45 @@ function hoistSubgraphDefinitions(graph: Graph) {
   return newGraph
 }
 
-function executeStep(step: GraphStep, graph: Graph, context: Context) {
+function executeStep(
+  step: GraphStep,
+  graph: Graph,
+  context: Context,
+  runInParentContext = false
+) {
   if (context.executedSteps[step.name]) {
     return
   }
+  context.executedSteps[step.name] = true
   const type = step.type
   const resolver = STEP_TYPE_RESOLVERS[type]
   if (!resolver) {
     throw new Error(`Unknown step type: ${step.type}`)
   }
 
-  resolver(step, graph, context)
-  context.executedSteps[step.name] = true
+  resolver(step, graph, context, runInParentContext)
 }
 
 function executeGraph(graph: Graph, context: Context): Output {
   const withHoistedDefinitions = hoistSubgraphDefinitions(graph)
-  withHoistedDefinitions.forEach((step) => executeStep(step, graph, context))
-  return context._output
+  withHoistedDefinitions.forEach(step => executeStep(step, graph, context))
+  return context.output
 }
 
 export default function externalExecute(
-  graph: DbGraph,
+  graph: DbGraph | Graph,
   inputs: any,
   debug = false
 ) {
   outputOptions.enabled = debug
   const context: Context = {
-    // inputs: resDayratesBaseDGraphInputs,
-    inputs,
     executedSteps: {},
     graphDefs: {},
-    _output: {},
+    runtimeValues: {
+      inputs,
+    },
+    output: {},
   }
-  return executeGraph(graph.data, context)
+  const toExecute = isArray(graph) ? (graph as Graph) : (graph as DbGraph).data
+  return executeGraph(toExecute, context)
 }
