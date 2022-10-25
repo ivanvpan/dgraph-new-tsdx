@@ -31,6 +31,7 @@ interface Context {
     [field: string]: any
   }
   output: Output
+  parentContext?: Context
 }
 
 type StepType =

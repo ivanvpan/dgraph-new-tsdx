@@ -304,7 +304,7 @@ describe('Graph', () => {
           },
           {
             name: 'doubleMeInternal',
-            type:'alias',
+            type: 'alias',
             mirror: 'inputs.doubleMe',
           },
           {
@@ -316,14 +316,14 @@ describe('Graph', () => {
       }
 
       const input = {
-        doubleMe: 10
+        doubleMe: 10,
       }
 
       const result = executeGraph(graph as DbGraph, input, true)
       expect(result.doubled).toBe(20)
     })
 
-    fit('can reference unevaluated values from parent runtime as inputs', () => {
+    it('can reference unevaluated values from parent runtime as inputs', () => {
       const graph = {
         data: [
           {
@@ -357,14 +357,62 @@ describe('Graph', () => {
             type: 'graph',
             graphDef: 'one-doubler',
             inputs: {
-              doubleMe: 'inputs.doubleMe'
-            }
+              doubleMe: 'inputs.doubleMe',
+            },
           },
         ],
       }
 
       const input = {
-        doubleMe: 10
+        doubleMe: 10,
+      }
+
+      const result = executeGraph(graph as DbGraph, input, true)
+      expect(result.twoDoubled).toBe(40)
+    })
+
+    fit('when evaluating steps from parent scope ensure that parent scope gets updated with results', () => {
+      const graph = {
+        data: [
+          {
+            name: 'two-doubler',
+            type: 'graph',
+            graphDef: [
+              {
+                name: 'result',
+                type: 'transform',
+                fn: 'mult',
+                params: {
+                  amt: 'inputs.oneDoubled.doubled',
+                  factor: 2,
+                },
+              },
+            ],
+          },
+          {
+            name: 'twoDoubled',
+            type: 'alias',
+            mirror: 'two-doubler.result',
+          },
+          {
+            name: 'one-doubler',
+            type: 'graph',
+            graphDef: [DOUBLE_STEP],
+            isTemplate: true,
+          },
+          {
+            name: 'oneDoubled',
+            type: 'graph',
+            graphDef: 'one-doubler',
+            inputs: {
+              doubleMe: 'inputs.doubleMe',
+            },
+          },
+        ],
+      }
+
+      const input = {
+        doubleMe: 10,
       }
 
       const result = executeGraph(graph as DbGraph, input, true)
