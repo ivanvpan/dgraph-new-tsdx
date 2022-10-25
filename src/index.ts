@@ -1,6 +1,7 @@
 import isArray from 'lodash/isArray'
 import toPath from 'lodash/toPath'
 import isString from 'lodash/isString'
+import cloneDeep from 'lodash/cloneDeep'
 import transforms from './transforms'
 import { getValueAtPathWithArraySupport } from './path-utils'
 
@@ -24,7 +25,7 @@ function debug(msg: string | Error, warning = false) {
 type Output = { [outputKey: string]: any }
 interface Context {
   graphDefs: { [graphName: string]: any }
-  executedSteps: { [stepName: string]: true }
+  executedSteps: { [stepName: string]: boolean }
   runtimeValues: {
     inputs: { [input: string]: any }
     [field: string]: any
@@ -54,6 +55,9 @@ interface GraphStep {
   type: StepType
   isHidden?: boolean
   comments?: string
+
+  // in-app-only
+  namespace?: string
 
   // transform
   params?: any
@@ -99,13 +103,6 @@ function resolvePathOrValue(
   if (isString(pathOrValue)) {
     resolved = tryResolving(context.runtimeValues, pathOrValue)
 
-    if (resolved === undefined && pathOrValue.startsWith('inputs.')) {
-      const pathWithoutInputSegment = toPath(pathOrValue)
-        .slice(1)
-        .join('.')
-      resolved = tryResolving(context.runtimeValues, pathWithoutInputSegment)
-    }
-
     // If the value does not resolve to some precomputed value we need to check if there
     // is a step somewhere ahead in the graph that needs to run first. This is because
     // the original dgraph is needlessly non-linear. Dependencies could be anywhere but the execution
@@ -122,20 +119,29 @@ function resolvePathOrValue(
 
     // And yet another way to call subgraphs is by just calling it directly and
     // implicitly pass the whole state of the current context. The current context,
-    // though, will be referenced by `inputs.`. (ノಠ益ಠ)ノ彡┻━┻
+    // though, will be referenced via `inputs.`. (ノಠ益ಠ)ノ彡┻━┻
     if (resolved === undefined) {
       const firstSegment = toPath(pathOrValue)[0]
       const dependency = context.graphDefs[firstSegment]
       if (dependency) {
         const graphStep: GraphStep = {
-          name: firstSegment,
+          name: firstSegment + '.execution-instance',
           type: 'graph',
           graphDef: dependency,
+          namespace: firstSegment,
           inputs: {},
         }
         executeStep(graphStep, graph, context, true)
         resolved = tryResolving(context.runtimeValues, pathOrValue)
       }
+    }
+
+    if (resolved === undefined && pathOrValue.startsWith('inputs.')) {
+      const pathWithoutInputSegment = toPath(pathOrValue)
+        .slice(1)
+        .join('.')
+      console.log('*** lets try resolving without the inputs part', pathWithoutInputSegment)
+      resolved = resolvePathOrValue(graph, context, pathWithoutInputSegment)
     }
 
     if (resolved === undefined) {
@@ -189,7 +195,6 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
     step: GraphStep,
     graph: Graph,
     context: Context,
-    runInParentContext = false
   ) => {
     const name = step.name
 
@@ -236,18 +241,18 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
         })
         setValueInContext(context, step.name, result, step.isHidden)
         debug(`=== mapping subgraph end: ${name}`)
-      } else if (runInParentContext) {
+      } else if (step.namespace) {
+        // This is the really weird part
+        console.log('running subgraph', step.name, 'in parent context:')
         debug(`=== subgraph start: ${name}. inputs: ${JSON.stringify(inputs)}`)
-        const graphConcat = [].concat(graph, subGraph)
-        const result = executeGraph(graphConcat, {
-          executedSteps: {},
+        const result = executeGraph([].concat(graph,subGraph), {
+          executedSteps: context.executedSteps,
           graphDefs: context.graphDefs,
-          runtimeValues: {
-            inputs,
-          },
+          runtimeValues: cloneDeep(context.runtimeValues),
           output: {},
         })
-        setValueInContext(context, step.name, result, step.isHidden)
+        console.log('subgraph execution result', result)
+        setValueInContext(context, step.namespace, result, step.isHidden)
         debug(`=== subgraph end: ${name}`)
       } else {
         // execute the graph normally
@@ -339,7 +344,7 @@ function executeStep(
   context: Context,
   runInParentContext = false
 ) {
-  console.log(step, graph, context, runInParentContext)
+  // console.log(step, graph, context, runInParentContext)
   if (context.executedSteps[step.name]) {
     console.log('already ran', step.name)
     return

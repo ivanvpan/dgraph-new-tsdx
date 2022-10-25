@@ -219,47 +219,157 @@ describe('Graph', () => {
     expect(result.doubledAgain).toBe(40)
   })
 
-  fit('executes a subgraph with current runtime when it is invoked directly', () => {
-    const graph = {
-      data: [
-        {
-          name: 'the-doubler',
-          type: 'graph',
-          graphDef: [
-            {
-              name: 'doubled',
-              type: 'transform',
-              fn: 'mult',
-              params: {
-                amt: 'inputs.summed',
-                factor: 2,
+  fdescribe('direct reference to an unexecuted subgraph', () => {
+    it('basic invocation works', () => {
+      const graph = {
+        data: [
+          {
+            name: 'the-doubler',
+            type: 'graph',
+            graphDef: [
+              {
+                name: 'result',
+                type: 'transform',
+                fn: 'mult',
+                params: {
+                  amt: 3,
+                  factor: 2,
+                },
               },
-            },
-          ],
-        },
-        {
-          name: 'doubled',
-          type: 'alias',
-          mirror: 'the-doubler.doubled'
-        },
-        {
-          name: 'summed',
-          type: 'transform',
-          fn: 'add',
-          params: {
-            a: 'inputs.sumAndDoubleMe',
-            b: 5,
+            ],
           },
-        },
-      ],
-    }
+          {
+            name: 'doubled',
+            type: 'alias',
+            mirror: 'the-doubler.result',
+          },
+        ],
+      }
 
-    const input = {
-      sumAndDoubleMe: 10,
-    }
+      const input = {}
 
-    const result = executeGraph(graph as DbGraph, input, true)
-    console.log(result)
-    expect(result.quadrupled).toBe(40)
+      const result = executeGraph(graph as DbGraph, input)
+      expect(result.doubled).toBe(6)
+    })
+
+    it('does not leak its results into runtime', () => {
+      const graph = {
+        data: [
+          {
+            name: 'the-doubler',
+            type: 'graph',
+            graphDef: [
+              {
+                name: 'result',
+                type: 'transform',
+                fn: 'mult',
+                params: {
+                  amt: 3,
+                  factor: 2,
+                },
+              },
+            ],
+          },
+          {
+            name: 'doubled',
+            type: 'alias',
+            mirror: 'the-doubler.result',
+          },
+        ],
+      }
+
+      const input = {}
+
+      const result = executeGraph(graph as DbGraph, input)
+      expect(result.result).toBeUndefined
+    })
+
+    it('can reference values from parent runtime as inputs', () => {
+      const graph = {
+        data: [
+          {
+            name: 'the-doubler',
+            type: 'graph',
+            graphDef: [
+              {
+                name: 'result',
+                type: 'transform',
+                fn: 'mult',
+                params: {
+                  amt: 'inputs.doubleMeInternal',
+                  factor: 2,
+                },
+              },
+            ],
+          },
+          {
+            name: 'doubleMeInternal',
+            type:'alias',
+            mirror: 'inputs.doubleMe',
+          },
+          {
+            name: 'doubled',
+            type: 'alias',
+            mirror: 'the-doubler.result',
+          },
+        ],
+      }
+
+      const input = {
+        doubleMe: 10
+      }
+
+      const result = executeGraph(graph as DbGraph, input, true)
+      expect(result.doubled).toBe(20)
+    })
+
+    fit('can reference unevaluated values from parent runtime as inputs', () => {
+      const graph = {
+        data: [
+          {
+            name: 'two-doubler',
+            type: 'graph',
+            graphDef: [
+              {
+                name: 'result',
+                type: 'transform',
+                fn: 'mult',
+                params: {
+                  amt: 'inputs.oneDoubled.doubled',
+                  factor: 2,
+                },
+              },
+            ],
+          },
+          {
+            name: 'twoDoubled',
+            type: 'alias',
+            mirror: 'two-doubler.result',
+          },
+          {
+            name: 'one-doubler',
+            type: 'graph',
+            graphDef: [DOUBLE_STEP],
+            isTemplate: true,
+          },
+          {
+            name: 'oneDoubled',
+            type: 'graph',
+            graphDef: 'one-doubler',
+            inputs: {
+              doubleMe: 'inputs.doubleMe'
+            }
+          },
+        ],
+      }
+
+      const input = {
+        doubleMe: 10
+      }
+
+      const result = executeGraph(graph as DbGraph, input, true)
+      console.log(result)
+      expect(result.twoDoubled).toBe(40)
+    })
   })
 })
