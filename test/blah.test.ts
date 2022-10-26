@@ -24,6 +24,26 @@ describe('Graph', () => {
     expect(result.doubled).toBe(20)
   })
 
+  it('executes transform with single param', () => {
+    const graph = {
+      data: [
+        {
+          name: 'added',
+          type: 'transform',
+          fn: 'addN',
+          params: 'inputs.addUs',
+        },
+      ],
+    }
+    const input = {
+      addUs: [1,2,3],
+    }
+
+    const result = executeGraph(graph as DbGraph, input)
+
+    expect(result.added).toBe(6)
+  })
+
   it('creates static value', () => {
     const graph = {
       data: [
@@ -219,7 +239,7 @@ describe('Graph', () => {
     expect(result.doubledAgain).toBe(40)
   })
 
-  fit('correctly runs mapping subgraph calls', () => {
+  it('correctly runs mapping subgraph calls', () => {
     const graph = {
       data: [
         {

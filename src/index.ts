@@ -2,6 +2,7 @@ import isArray from 'lodash/isArray'
 import toPath from 'lodash/toPath'
 import isString from 'lodash/isString'
 import transforms from './transforms'
+import isNumber from 'lodash/isNumber'
 import { getValueAtPathWithArraySupport } from './path-utils'
 
 let outputOptions = {
@@ -141,12 +142,23 @@ function resolvePathOrValue(
       }
     }
 
-    if (resolved === undefined && pathOrValue.startsWith('inputs.') && context.parentContext) {
+    if (
+      resolved === undefined &&
+      pathOrValue.startsWith('inputs.') &&
+      context.parentContext
+    ) {
       const pathWithoutInputSegment = toPath(pathOrValue)
         .slice(1)
         .join('.')
-      console.log('*** lets try resolving without the inputs part', pathWithoutInputSegment)
-      resolved = resolvePathOrValue(context.parentContext.graph, context.parentContext.context, pathWithoutInputSegment)
+      console.log(
+        '*** lets try resolving without the inputs part',
+        pathWithoutInputSegment
+      )
+      resolved = resolvePathOrValue(
+        context.parentContext.graph,
+        context.parentContext.context,
+        pathWithoutInputSegment
+      )
     }
 
     if (resolved === undefined) {
@@ -164,14 +176,20 @@ function resolvePathOrValue(
 function resolveParams(
   graph: Graph,
   context: Context,
-  params: { [name: string]: any }
+  params: { [name: string]: any } | string | number
 ) {
-  return Object.fromEntries(
-    Object.entries(params).map(entry => [
-      entry[0],
-      resolvePathOrValue(graph, context, entry[1]),
-    ])
-  )
+  if (isString(params)) {
+    return resolvePathOrValue(graph, context, params)
+  } else if (isNumber(params)) {
+    return params
+  } else {
+    return Object.fromEntries(
+      Object.entries(params).map(entry => [
+        entry[0],
+        resolvePathOrValue(graph, context, entry[1]),
+      ])
+    )
+  }
 }
 
 function setValueInContext(
@@ -196,11 +214,7 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
 
     debug(`echo: ${step.name} = ${JSON.stringify(value)}`)
   },
-  graph: (
-    step: GraphStep,
-    graph: Graph,
-    context: Context,
-  ) => {
+  graph: (step: GraphStep, graph: Graph, context: Context) => {
     const name = step.name
 
     // TODO logic that recognizes what sort of 'graph' step it is repeated in a few places
@@ -253,7 +267,7 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
         const result = executeGraph(subGraph, {
           parentContext: {
             context,
-            graph
+            graph,
           },
           executedSteps: {},
           graphDefs: {},
@@ -295,7 +309,11 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
       step.isHidden
     )
 
-    debug(`transform: ${step.name} = ${step.fn}(${JSON.stringify(params)})`)
+    debug(
+      `transform: ${step.name} = ${step.fn}(${step.params}) = ${
+        step.fn
+      }(${JSON.stringify(params)})`
+    )
   },
   dereference: (step: GraphStep, graph: Graph, context: Context) => {
     const theObject = resolvePathOrValue(graph, context, step.objectPath)
@@ -303,7 +321,9 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
 
     setValueInContext(context, step.name, theObject[prop], step.isHidden)
 
-    debug(`dereference: ${step.name} = ${step.objectPath}['${step.propNamePath}'] = ${theObject[prop]}`)
+    debug(
+      `dereference: ${step.name} = ${step.objectPath}['${step.propNamePath}'] = ${theObject[prop]}`
+    )
   },
   alias: (step: GraphStep, graph: Graph, context: Context) => {
     const value = resolvePathOrValue(graph, context, step.mirror)
