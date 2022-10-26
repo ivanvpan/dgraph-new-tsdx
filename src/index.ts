@@ -261,7 +261,8 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
         setValueInContext(context, step.name, result, step.isHidden)
         debug(`=== mapping subgraph end: ${name}`)
       } else if (step.namespace) {
-        // This is the really weird part
+        // This is when we run a subgraph by referencing its definitions directly
+        // and the current context becomes the implicit input.
         console.log('running subgraph', step.name, 'in parent context:')
         debug(`=== subgraph start: ${name}. inputs: ${JSON.stringify(inputs)}`)
         const result = executeGraph(subGraph, {
@@ -270,7 +271,7 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
             graph,
           },
           executedSteps: {},
-          graphDefs: {},
+          graphDefs: context.graphDefs,
           runtimeValues: {
             inputs: {},
           },
