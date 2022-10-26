@@ -1,7 +1,6 @@
 import isArray from 'lodash/isArray'
 import toPath from 'lodash/toPath'
 import isString from 'lodash/isString'
-import cloneDeep from 'lodash/cloneDeep'
 import transforms from './transforms'
 import { getValueAtPathWithArraySupport } from './path-utils'
 
@@ -31,7 +30,12 @@ interface Context {
     [field: string]: any
   }
   output: Output
-  parentContext?: Context
+  parentContext?: ParentContext
+}
+
+interface ParentContext {
+  context: Context
+  graph: Graph
 }
 
 type StepType =
@@ -137,12 +141,12 @@ function resolvePathOrValue(
       }
     }
 
-    if (resolved === undefined && pathOrValue.startsWith('inputs.')) {
+    if (resolved === undefined && pathOrValue.startsWith('inputs.') && context.parentContext) {
       const pathWithoutInputSegment = toPath(pathOrValue)
         .slice(1)
         .join('.')
       console.log('*** lets try resolving without the inputs part', pathWithoutInputSegment)
-      resolved = resolvePathOrValue(graph, context, pathWithoutInputSegment)
+      resolved = resolvePathOrValue(context.parentContext.graph, context.parentContext.context, pathWithoutInputSegment)
     }
 
     if (resolved === undefined) {
@@ -190,7 +194,7 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
 
     setValueInContext(context, step.name, value)
 
-    debug(`${step.name} = ${JSON.stringify(value)}`)
+    debug(`echo: ${step.name} = ${JSON.stringify(value)}`)
   },
   graph: (
     step: GraphStep,
@@ -246,10 +250,16 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
         // This is the really weird part
         console.log('running subgraph', step.name, 'in parent context:')
         debug(`=== subgraph start: ${name}. inputs: ${JSON.stringify(inputs)}`)
-        const result = executeGraph([].concat(graph,subGraph), {
-          executedSteps: context.executedSteps,
-          graphDefs: context.graphDefs,
-          runtimeValues: cloneDeep(context.runtimeValues),
+        const result = executeGraph(subGraph, {
+          parentContext: {
+            context,
+            graph
+          },
+          executedSteps: {},
+          graphDefs: {},
+          runtimeValues: {
+            inputs: {},
+          },
           output: {},
         })
         console.log('subgraph execution result', result)
@@ -285,7 +295,7 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
       step.isHidden
     )
 
-    debug(`${step.name} = ${step.fn}(${JSON.stringify(params)})`)
+    debug(`transform: ${step.name} = ${step.fn}(${JSON.stringify(params)})`)
   },
   dereference: (step: GraphStep, graph: Graph, context: Context) => {
     const theObject = resolvePathOrValue(graph, context, step.objectPath)
@@ -293,14 +303,14 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
 
     setValueInContext(context, step.name, theObject[prop], step.isHidden)
 
-    debug(`${step.name} = ${step.objectPath}['${step.propNamePath}']`)
+    debug(`dereference: ${step.name} = ${step.objectPath}['${step.propNamePath}'] = ${theObject[prop]}`)
   },
   alias: (step: GraphStep, graph: Graph, context: Context) => {
     const value = resolvePathOrValue(graph, context, step.mirror)
 
     setValueInContext(context, step.name, value, step.isHidden)
 
-    debug(`${step.name} = ${step.mirror}`)
+    debug(`alias: ${step.name} = ${step.mirror} = ${value}`)
   },
   branch: (step: GraphStep, graph: Graph, context: Context) => {
     const DEFAULT = '_default_'
@@ -312,13 +322,13 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
     }
 
     const nodeName = step.nodeNames[index]
-    const resolvedNodeName = resolvePathOrValue(graph, context, nodeName)
-    setValueInContext(context, step.name, resolvedNodeName, step.isHidden)
-    debug(`${step.name} = "${resolvedNodeName.resolved}"`)
+    const resolvedNodeValue = resolvePathOrValue(graph, context, nodeName)
+    setValueInContext(context, step.name, resolvedNodeValue, step.isHidden)
+    debug(`branch: ${step.name} = ${nodeName} = '${resolvedNodeValue}'`)
   },
   static: (step: GraphStep, _graph: Graph, context: Context) => {
     setValueInContext(context, step.name, step.value, step.isHidden)
-    debug(`${step.name} = "${step.value}"`)
+    debug(`static: ${step.name} = "${step.value}"`)
   },
 }
 

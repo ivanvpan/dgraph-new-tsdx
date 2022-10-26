@@ -219,7 +219,45 @@ describe('Graph', () => {
     expect(result.doubledAgain).toBe(40)
   })
 
-  fdescribe('direct reference to an unexecuted subgraph', () => {
+  fit('correctly runs mapping subgraph calls', () => {
+    const graph = {
+      data: [
+        {
+          name: 'doubleMapper',
+          type: 'graph',
+          graphDef: [
+            {
+              name: 'doubled',
+              type: 'transform',
+              fn: 'mult',
+              params: {
+                amt: 'inputs.item',
+                factor: 2,
+              },
+            },
+          ],
+        },
+        {
+          name: 'doubledArray',
+          type: 'graph',
+          graphDef: 'doubleMapper',
+          collectionMode: 'map',
+          inputs: {
+            collection: 'inputs.numbers.*',
+          },
+        },
+      ],
+    }
+
+    const input = {
+      numbers: [1, 2],
+    }
+
+    const result = executeGraph(graph as DbGraph, input, true)
+    expect(result.doubledArray).toEqual([{ doubled: 2 }, { doubled: 4 }])
+  })
+
+  describe('direct reference to an unexecuted subgraph', () => {
     it('basic invocation works', () => {
       const graph = {
         data: [
@@ -371,7 +409,7 @@ describe('Graph', () => {
       expect(result.twoDoubled).toBe(40)
     })
 
-    fit('when evaluating steps from parent scope ensure that parent scope gets updated with results', () => {
+    it('when evaluating steps from parent scope ensure that parent scope gets updated with results', () => {
       const graph = {
         data: [
           {
@@ -415,9 +453,8 @@ describe('Graph', () => {
         doubleMe: 10,
       }
 
-      const result = executeGraph(graph as DbGraph, input, true)
-      console.log(result)
-      expect(result.twoDoubled).toBe(40)
+      const result = executeGraph(graph as DbGraph, input)
+      expect(result.oneDoubled.doubled).toBe(20)
     })
   })
 })
