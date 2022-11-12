@@ -150,10 +150,6 @@ function resolvePathOrValue(
       const pathWithoutInputSegment = toPath(pathOrValue)
         .slice(1)
         .join('.')
-      console.log(
-        '*** lets try resolving without the inputs part',
-        pathWithoutInputSegment
-      )
       resolved = resolvePathOrValue(
         context.parentContext.graph,
         context.parentContext.context,
@@ -263,7 +259,7 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
       } else if (step.namespace) {
         // This is when we run a subgraph by referencing its definitions directly
         // and the current context becomes the implicit input.
-        console.log('running subgraph', step.name, 'in parent context:')
+        debug(`running subgraph ${step.name} in parent context:`)
         debug(`=== subgraph start: ${name}. inputs: ${JSON.stringify(inputs)}`)
         const result = executeGraph(subGraph, {
           parentContext: {
