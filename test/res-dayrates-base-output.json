@@ -1,0 +1,11 @@
+{
+  "tierDayrate": 72,
+  "advertisedDayratePreRounding": 72,
+  "advertisedDayrate": 72,
+  "roadsidePerDay": 5,
+  "borrowerInsurancePerDay": 20,
+  "lenderInsurancePerDay": 10,
+  "coopLiabilityInsurancePerDay": 0,
+  "borrowerEffectiveDayrate": 72,
+  "lenderEffectiveDayrate": 62
+}

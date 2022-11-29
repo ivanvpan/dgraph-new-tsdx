@@ -1,0 +1,1097 @@
+{
+  "vehiclePropsHash": "cedo8tKO",
+  "pricingTier": {
+    "rates": {
+      "prepaidMileagePerDay": {
+        "trailer": 250,
+        "truck": 250,
+        "dayCab": 250,
+        "sleeper": 350
+      },
+      "pricePerMile": {
+        "trailer": 0.04,
+        "truck": 0.12,
+        "tractor": 0.12
+      },
+      "pricePerExtraMile": {
+        "trailer": 0.04,
+        "truck": 0.2,
+        "tractor": 0.2
+      },
+      "reefer": {
+        "perHour": 1
+      },
+      "roadsidePerDay": {
+        "trailer": 2,
+        "truck": 5,
+        "tractor": 5
+      },
+      "coopLiabilityInsurancePerDay": {
+        "trailer": 6.35,
+        "truck": 30.77,
+        "tractor": 46.18
+      },
+      "coopLenderLiabilityInsurancePerDay": {
+        "trailer": 5,
+        "truck": 19,
+        "tractor": 31
+      },
+      "borrowerInsurancePerDay": {
+        "trailer": 8,
+        "truck": 20,
+        "tractor": 30
+      },
+      "lenderInsurancePerDay": {
+        "trailer": 5,
+        "truck": 10,
+        "tractor": 10
+      },
+      "lenderDayrateAdjustmentRange": 0.4,
+      "borrowerCommissionRate": 0.1,
+      "lenderCommissionRate": 0.2,
+      "coopLiabilityInsuranceTaxRate": 0.04
+    },
+    "borrowerRiskPolicies": {
+      "deposit": [
+        {
+          "_id": "633b538d5eaf9e001f6cfe39",
+          "depositClass": "trailer",
+          "financialRiskLevel": "none",
+          "depositRequirement": 0
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe3a",
+          "depositClass": "truck",
+          "financialRiskLevel": "none",
+          "depositRequirement": 0
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe3b",
+          "depositClass": "dayCab",
+          "financialRiskLevel": "none",
+          "depositRequirement": 0
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe3c",
+          "depositClass": "sleeper",
+          "financialRiskLevel": "none",
+          "depositRequirement": 0
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe3d",
+          "depositClass": "trailer",
+          "financialRiskLevel": "low",
+          "depositRequirement": 0
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe3e",
+          "depositClass": "truck",
+          "financialRiskLevel": "low",
+          "depositRequirement": 0
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe3f",
+          "depositClass": "dayCab",
+          "financialRiskLevel": "low",
+          "depositRequirement": 0
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe40",
+          "depositClass": "sleeper",
+          "financialRiskLevel": "low",
+          "depositRequirement": 0
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe41",
+          "depositClass": "trailer",
+          "financialRiskLevel": "medium",
+          "depositRequirement": 100
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe42",
+          "depositClass": "truck",
+          "financialRiskLevel": "medium",
+          "depositRequirement": 500
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe43",
+          "depositClass": "dayCab",
+          "financialRiskLevel": "medium",
+          "depositRequirement": 750
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe44",
+          "depositClass": "sleeper",
+          "financialRiskLevel": "medium",
+          "depositRequirement": 1000
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe45",
+          "depositClass": "trailer",
+          "financialRiskLevel": "medium-high",
+          "depositRequirement": 150
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe46",
+          "depositClass": "truck",
+          "financialRiskLevel": "medium-high",
+          "depositRequirement": 750
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe47",
+          "depositClass": "dayCab",
+          "financialRiskLevel": "medium-high",
+          "depositRequirement": 1000
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe48",
+          "depositClass": "sleeper",
+          "financialRiskLevel": "medium-high",
+          "depositRequirement": 1500
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe49",
+          "depositClass": "trailer",
+          "financialRiskLevel": "high",
+          "depositRequirement": 150
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe4a",
+          "depositClass": "truck",
+          "financialRiskLevel": "high",
+          "depositRequirement": 750
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe4b",
+          "depositClass": "dayCab",
+          "financialRiskLevel": "high",
+          "depositRequirement": 1000
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe4c",
+          "depositClass": "sleeper",
+          "financialRiskLevel": "high",
+          "depositRequirement": 1500
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe4d",
+          "depositClass": "trailer",
+          "financialRiskLevel": "cannot-borrow",
+          "depositRequirement": 150
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe4e",
+          "depositClass": "truck",
+          "financialRiskLevel": "cannot-borrow",
+          "depositRequirement": 750
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe4f",
+          "depositClass": "dayCab",
+          "financialRiskLevel": "cannot-borrow",
+          "depositRequirement": 1000
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe50",
+          "depositClass": "sleeper",
+          "financialRiskLevel": "cannot-borrow",
+          "depositRequirement": 1500
+        }
+      ],
+      "financial": [
+        {
+          "dnbiScoreRange": {
+            "isInclusive": {
+              "low": true,
+              "high": true
+            },
+            "low": 9,
+            "high": 10
+          },
+          "restrictions": [],
+          "_id": "633b538d5eaf9e001f6cfe51",
+          "financialRiskLevel": "none"
+        },
+        {
+          "dnbiScoreRange": {
+            "isInclusive": {
+              "low": true,
+              "high": false
+            },
+            "low": 7,
+            "high": 9
+          },
+          "restrictions": [],
+          "_id": "633b538d5eaf9e001f6cfe52",
+          "financialRiskLevel": "low"
+        },
+        {
+          "dnbiScoreRange": {
+            "isInclusive": {
+              "low": true,
+              "high": false
+            },
+            "low": 4,
+            "high": 7
+          },
+          "restrictions": [
+            "no-ach"
+          ],
+          "_id": "633b538d5eaf9e001f6cfe53",
+          "financialRiskLevel": "medium"
+        },
+        {
+          "dnbiScoreRange": {
+            "isInclusive": {
+              "low": true,
+              "high": false
+            },
+            "low": 3,
+            "high": 4
+          },
+          "restrictions": [
+            "no-driver-labor",
+            "no-ach"
+          ],
+          "_id": "633b538d5eaf9e001f6cfe54",
+          "financialRiskLevel": "medium-high"
+        },
+        {
+          "dnbiScoreRange": {
+            "isInclusive": {
+              "low": true,
+              "high": false
+            },
+            "low": 2,
+            "high": 3
+          },
+          "restrictions": [
+            "no-liability-insurance",
+            "no-sleepers",
+            "no-ach",
+            "no-driver-labor"
+          ],
+          "_id": "633b538d5eaf9e001f6cfe55",
+          "financialRiskLevel": "high"
+        },
+        {
+          "dnbiScoreRange": {
+            "isInclusive": {
+              "low": false,
+              "high": false
+            },
+            "low": 1,
+            "high": 2
+          },
+          "restrictions": [
+            "no-physical-damage-insurance",
+            "no-liability-insurance",
+            "no-sleepers",
+            "cannot-borrow",
+            "no-ach",
+            "no-driver-labor"
+          ],
+          "_id": "633b538d5eaf9e001f6cfe56",
+          "financialRiskLevel": "cannot-borrow"
+        },
+        {
+          "dnbiScoreRange": {
+            "isInclusive": {
+              "low": true,
+              "high": true
+            },
+            "low": 1,
+            "high": 1
+          },
+          "restrictions": [
+            "no-physical-damage-insurance",
+            "no-liability-insurance",
+            "no-sleepers",
+            "cannot-borrow",
+            "no-ach",
+            "no-driver-labor"
+          ],
+          "_id": "633b538d5eaf9e001f6cfe57",
+          "financialRiskLevel": "cannot-borrow"
+        }
+      ],
+      "operating": [
+        {
+          "riskPercentileRange": {
+            "isInclusive": {
+              "low": true,
+              "high": true
+            },
+            "low": 0,
+            "high": 0
+          },
+          "restrictions": [],
+          "_id": "633b538d5eaf9e001f6cfe58",
+          "riskLevel": "none"
+        },
+        {
+          "riskPercentileRange": {
+            "isInclusive": {
+              "low": false,
+              "high": false
+            },
+            "low": 0,
+            "high": 0.3
+          },
+          "restrictions": [],
+          "_id": "633b538d5eaf9e001f6cfe59",
+          "riskLevel": "low"
+        },
+        {
+          "riskPercentileRange": {
+            "isInclusive": {
+              "low": true,
+              "high": false
+            },
+            "low": 0.3,
+            "high": 0.75
+          },
+          "restrictions": [],
+          "_id": "633b538d5eaf9e001f6cfe5a",
+          "riskLevel": "medium"
+        },
+        {
+          "riskPercentileRange": {
+            "isInclusive": {
+              "low": true,
+              "high": false
+            },
+            "low": 0.75,
+            "high": 0.95
+          },
+          "restrictions": [],
+          "_id": "633b538d5eaf9e001f6cfe5b",
+          "riskLevel": "medium-high"
+        },
+        {
+          "riskPercentileRange": {
+            "isInclusive": {
+              "low": true,
+              "high": false
+            },
+            "low": 0.95,
+            "high": 0.99
+          },
+          "restrictions": [
+            "no-physical-damage-insurance",
+            "no-liability-insurance",
+            "no-sleepers",
+            "no-driver-labor"
+          ],
+          "_id": "633b538d5eaf9e001f6cfe5c",
+          "riskLevel": "high"
+        },
+        {
+          "riskPercentileRange": {
+            "isInclusive": {
+              "low": true,
+              "high": true
+            },
+            "low": 0.99,
+            "high": 1
+          },
+          "restrictions": [
+            "no-physical-damage-insurance",
+            "no-liability-insurance",
+            "no-sleepers",
+            "no-driver-labor",
+            "cannot-borrow"
+          ],
+          "_id": "633b538d5eaf9e001f6cfe5d",
+          "riskLevel": "cannot-borrow"
+        }
+      ],
+      "dot": [
+        {
+          "dotAgeInMonthsRange": {
+            "isInclusive": {
+              "low": true,
+              "high": true
+            },
+            "low": -2,
+            "high": -2
+          },
+          "restrictions": [
+            "no-sleepers"
+          ],
+          "_id": "633b538d5eaf9e001f6cfe5e",
+          "riskLevel": "none"
+        },
+        {
+          "dotAgeInMonthsRange": {
+            "isInclusive": {
+              "low": true,
+              "high": true
+            },
+            "low": -1,
+            "high": -1
+          },
+          "restrictions": [
+            "no-sleepers"
+          ],
+          "_id": "633b538d5eaf9e001f6cfe5f",
+          "riskLevel": "none"
+        },
+        {
+          "dotAgeInMonthsRange": {
+            "isInclusive": {
+              "low": true,
+              "high": true
+            },
+            "low": 0,
+            "high": 11
+          },
+          "restrictions": [
+            "no-sleepers"
+          ],
+          "_id": "633b538d5eaf9e001f6cfe60",
+          "riskLevel": "none"
+        },
+        {
+          "dotAgeInMonthsRange": {
+            "isInclusive": {
+              "low": true,
+              "high": true
+            },
+            "low": 12,
+            "high": 9007199254740991
+          },
+          "restrictions": [],
+          "_id": "633b538d5eaf9e001f6cfe61",
+          "riskLevel": "none"
+        }
+      ]
+    },
+    "driverLabor": {
+      "rates": {
+        "pricePerMile": {
+          "truck": 0.5,
+          "tractor": 0.5
+        },
+        "roadsidePerDay": {
+          "truck": 0,
+          "tractor": 0
+        },
+        "coopLiabilityInsurancePerDay": {
+          "truck": 0,
+          "tractor": 0
+        },
+        "borrowerInsurancePerDay": {
+          "truck": 0,
+          "tractor": 0
+        },
+        "lenderCommissionRate": 0.2,
+        "borrowerCommissionRate": 0
+      },
+      "hoursPerDay": 8,
+      "hourlyRate": 42,
+      "pricings": [
+        {
+          "_id": "633b538d5eaf9e001f6cfe62",
+          "vehiclePropsHash": "6JIZxb7x",
+          "basePrice": 102
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe63",
+          "vehiclePropsHash": "4jU4r6R7",
+          "basePrice": 155
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe64",
+          "vehiclePropsHash": "5DyPevI7",
+          "basePrice": 135
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe65",
+          "vehiclePropsHash": "6fCmDub7",
+          "basePrice": 105
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe66",
+          "vehiclePropsHash": "696aUQWQ",
+          "basePrice": 145
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe67",
+          "vehiclePropsHash": "1mjiQs8R",
+          "basePrice": 65
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe68",
+          "vehiclePropsHash": "cedo8tKO",
+          "basePrice": 65
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe69",
+          "vehiclePropsHash": "2RPA4oH3",
+          "basePrice": 128
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe6a",
+          "vehiclePropsHash": "424Xtthx",
+          "basePrice": 102
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe6b",
+          "vehiclePropsHash": "5R0u3MOp",
+          "basePrice": 135
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe6c",
+          "vehiclePropsHash": "6rOuWuiR",
+          "basePrice": 125
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe6d",
+          "vehiclePropsHash": "5b8NpFEL",
+          "basePrice": 155
+        }
+      ]
+    },
+    "multipliers": {
+      "age": {
+        "tractor": [
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 0,
+              "high": 1
+            },
+            "_id": "633b538d5eaf9e001f6cfe74",
+            "multiplier": 0.1
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 2,
+              "high": 3
+            },
+            "_id": "633b538d5eaf9e001f6cfe75",
+            "multiplier": 0.05
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 4,
+              "high": 5
+            },
+            "_id": "633b538d5eaf9e001f6cfe76",
+            "multiplier": 0
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 6,
+              "high": 8
+            },
+            "_id": "633b538d5eaf9e001f6cfe77",
+            "multiplier": -0.05
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 9,
+              "high": 11
+            },
+            "_id": "633b538d5eaf9e001f6cfe78",
+            "multiplier": -0.075
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 12,
+              "high": 13
+            },
+            "_id": "633b538d5eaf9e001f6cfe79",
+            "multiplier": -0.15
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 14,
+              "high": 16
+            },
+            "_id": "633b538d5eaf9e001f6cfe7a",
+            "multiplier": -0.2
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 17,
+              "high": null
+            },
+            "_id": "633b538d5eaf9e001f6cfe7b",
+            "multiplier": -0.25
+          }
+        ],
+        "truck": [
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 0,
+              "high": 1
+            },
+            "_id": "633b538d5eaf9e001f6cfe7c",
+            "multiplier": 0.1
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 2,
+              "high": 3
+            },
+            "_id": "633b538d5eaf9e001f6cfe7d",
+            "multiplier": 0.05
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 4,
+              "high": 5
+            },
+            "_id": "633b538d5eaf9e001f6cfe7e",
+            "multiplier": 0
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 6,
+              "high": 8
+            },
+            "_id": "633b538d5eaf9e001f6cfe7f",
+            "multiplier": -0.05
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 9,
+              "high": 11
+            },
+            "_id": "633b538d5eaf9e001f6cfe80",
+            "multiplier": -0.075
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 12,
+              "high": 13
+            },
+            "_id": "633b538d5eaf9e001f6cfe81",
+            "multiplier": -0.15
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 14,
+              "high": 16
+            },
+            "_id": "633b538d5eaf9e001f6cfe82",
+            "multiplier": -0.2
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 17,
+              "high": null
+            },
+            "_id": "633b538d5eaf9e001f6cfe83",
+            "multiplier": -0.25
+          }
+        ],
+        "trailer": [
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 0,
+              "high": 1
+            },
+            "_id": "633b538d5eaf9e001f6cfe84",
+            "multiplier": 0.15
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 2,
+              "high": 5
+            },
+            "_id": "633b538d5eaf9e001f6cfe85",
+            "multiplier": 0.1
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 6,
+              "high": 10
+            },
+            "_id": "633b538d5eaf9e001f6cfe86",
+            "multiplier": 0
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 11,
+              "high": 17
+            },
+            "_id": "633b538d5eaf9e001f6cfe87",
+            "multiplier": -0.1
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 18,
+              "high": null
+            },
+            "_id": "633b538d5eaf9e001f6cfe88",
+            "multiplier": -0.15
+          }
+        ],
+        "van": [
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 0,
+              "high": 1
+            },
+            "_id": "633b538d5eaf9e001f6cfe89",
+            "multiplier": 0.1
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 2,
+              "high": 3
+            },
+            "_id": "633b538d5eaf9e001f6cfe8a",
+            "multiplier": 0.05
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 4,
+              "high": 5
+            },
+            "_id": "633b538d5eaf9e001f6cfe8b",
+            "multiplier": 0
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 6,
+              "high": 8
+            },
+            "_id": "633b538d5eaf9e001f6cfe8c",
+            "multiplier": -0.05
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 9,
+              "high": 11
+            },
+            "_id": "633b538d5eaf9e001f6cfe8d",
+            "multiplier": -0.075
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 12,
+              "high": 13
+            },
+            "_id": "633b538d5eaf9e001f6cfe8e",
+            "multiplier": -0.15
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 14,
+              "high": 16
+            },
+            "_id": "633b538d5eaf9e001f6cfe8f",
+            "multiplier": -0.2
+          },
+          {
+            "range": {
+              "isInclusive": {
+                "low": true,
+                "high": true
+              },
+              "low": 17,
+              "high": null
+            },
+            "_id": "633b538d5eaf9e001f6cfe90",
+            "multiplier": -0.25
+          }
+        ]
+      }
+    },
+    "lenderPerformancePolicies": {
+      "performanceLevel": [
+        {
+          "performanceScoreRange": {
+            "isInclusive": {
+              "low": true,
+              "high": false
+            },
+            "low": 0,
+            "high": 0.9
+          },
+          "_id": "633b538d5eaf9e001f6cfe6e",
+          "performanceLevel": "none"
+        },
+        {
+          "performanceScoreRange": {
+            "isInclusive": {
+              "low": true,
+              "high": true
+            },
+            "low": 0.9,
+            "high": 1
+          },
+          "_id": "633b538d5eaf9e001f6cfe6f",
+          "performanceLevel": "premium"
+        }
+      ],
+      "findRankBoost": [
+        {
+          "_id": "633b538d5eaf9e001f6cfe70",
+          "policyType": "performance-level-find-rank-boost",
+          "performanceLevel": "none",
+          "findRankBoost": 0
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe71",
+          "policyType": "performance-level-find-rank-boost",
+          "performanceLevel": "premium",
+          "findRankBoost": 1000
+        }
+      ]
+    },
+    "borrowerPerformancePolicies": {
+      "reservationRankBoost": [
+        {
+          "_id": "633b538d5eaf9e001f6cfe72",
+          "policyType": "performance-level-reservation-rank-boost",
+          "performanceLevel": "none",
+          "reservationRankBoost": 0
+        },
+        {
+          "_id": "633b538d5eaf9e001f6cfe73",
+          "policyType": "performance-level-reservation-rank-boost",
+          "performanceLevel": "premium",
+          "reservationRankBoost": 1000
+        }
+      ]
+    },
+    "isPlatformDefault": true,
+    "dataOrigin": "organic",
+    "deleted": false,
+    "_id": "5c1bc25a6d0263000eb02c9f",
+    "createdAt": "2018-12-20T16:24:58.799Z",
+    "updatedAt": "2022-10-03T21:26:37.708Z",
+    "name": "Platform Defaults",
+    "pricings": [
+      {
+        "vehiclePropsHash": "5R0u3MOp",
+        "basePrice": 135
+      },
+      {
+        "vehiclePropsHash": "cedo8tKO",
+        "basePrice": 65
+      },
+      {
+        "vehiclePropsHash": "2RPA4oH3",
+        "basePrice": 128
+      },
+      {
+        "vehiclePropsHash": "2RPA4oH3",
+        "basePrice": 128
+      },
+      {
+        "vehiclePropsHash": "696aUQWQ",
+        "basePrice": 145
+      },
+      {
+        "vehiclePropsHash": "696aUQWQ",
+        "basePrice": 143
+      },
+      {
+        "vehiclePropsHash": "424Xtthx",
+        "basePrice": 80
+      },
+      {
+        "vehiclePropsHash": "424Xtthx",
+        "basePrice": 102
+      },
+      {
+        "vehiclePropsHash": "6JIZxb7x",
+        "basePrice": 102
+      },
+      {
+        "vehiclePropsHash": "6JIZxb7x",
+        "basePrice": 102
+      },
+      {
+        "vehiclePropsHash": "1mjiQs8R",
+        "basePrice": 65
+      },
+      {
+        "vehiclePropsHash": "1mjiQs8R",
+        "basePrice": 60
+      },
+      {
+        "vehiclePropsHash": "6fCmDub7",
+        "basePrice": 105
+      },
+      {
+        "vehiclePropsHash": "6fCmDub7",
+        "basePrice": 99
+      },
+      {
+        "vehiclePropsHash": "3jGyyDat",
+        "basePrice": 75
+      },
+      {
+        "vehiclePropsHash": "5cSwmEOy",
+        "basePrice": 85
+      },
+      {
+        "vehiclePropsHash": "1wHbswsx",
+        "basePrice": 35
+      },
+      {
+        "vehiclePropsHash": "4Mv3IOO2",
+        "basePrice": 35
+      },
+      {
+        "vehiclePropsHash": "x4yu2FKV",
+        "basePrice": 35
+      },
+      {
+        "vehiclePropsHash": "3z1w9pvF",
+        "basePrice": 90
+      },
+      {
+        "vehiclePropsHash": "4jU4r6R7",
+        "basePrice": 155
+      },
+      {
+        "vehiclePropsHash": "6rOuWuiR",
+        "basePrice": 128
+      },
+      {
+        "vehiclePropsHash": "5DyPevI7",
+        "basePrice": 135
+      },
+      {
+        "vehiclePropsHash": "5b8NpFEL",
+        "basePrice": 155
+      }
+    ],
+    "__v": 153
+  },
+  "reservation": {
+    "vehicle": {
+      "size": "van",
+      "axleType": "",
+      "assetType": "truck",
+      "dayrateAdjustmentFactor": 0
+    },
+    "lenderCompany": {
+      "hasVehicleReplacementCoverage": true
+    },
+    "borrowerCompany": {
+      "hasPhysicalDamageInsurance": false,
+      "hasCOOPLiabilityInsurance": false
+    }
+  },
+  "recommendedRate": 72
+}

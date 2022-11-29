@@ -10,7 +10,7 @@ const DOUBLE_STEP = {
   },
 }
 
-describe('Graph', () => {
+describe('General graph features', () => {
   it('executes basic transform', () => {
     const graph = {
       data: [DOUBLE_STEP],
@@ -19,7 +19,7 @@ describe('Graph', () => {
       doubleMe: 10,
     }
 
-    const result = executeGraph(graph as DbGraph, input, true)
+    const result = executeGraph(graph as DbGraph, input)
 
     expect(result.doubled).toBe(20)
   })
@@ -273,7 +273,7 @@ describe('Graph', () => {
       numbers: [1, 2],
     }
 
-    const result = executeGraph(graph as DbGraph, input, true)
+    const result = executeGraph(graph as DbGraph, input)
     expect(result.doubledArray).toEqual([{ doubled: 2 }, { doubled: 4 }])
   })
 
@@ -377,7 +377,7 @@ describe('Graph', () => {
         doubleMe: 10,
       }
 
-      const result = executeGraph(graph as DbGraph, input, true)
+      const result = executeGraph(graph as DbGraph, input)
       expect(result.doubled).toBe(20)
     })
 
@@ -425,7 +425,7 @@ describe('Graph', () => {
         doubleMe: 10,
       }
 
-      const result = executeGraph(graph as DbGraph, input, true)
+      const result = executeGraph(graph as DbGraph, input)
       expect(result.twoDoubled).toBe(40)
     })
 

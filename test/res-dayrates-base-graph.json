@@ -1,0 +1,123 @@
+{
+  "_id": "62df1145e75b3e001fcc2dc4",
+  "isTemplate": false,
+  "type": "graph",
+  "deleted": false,
+  "namespace": "res-dayrates-base",
+  "name": "default",
+  "version": 9,
+  "data": [
+    {
+      "name": "tierDayrate",
+      "type": "transform",
+      "fn": "round",
+      "params": {
+        "amt": "inputs.recommendedRate"
+      }
+    },
+    {
+      "name": "advertisedDayrateWithFactorAdjustment",
+      "type": "transform",
+      "fn": "addFactor",
+      "params": {
+        "amt": "tierDayrate",
+        "factor": "inputs.reservation.vehicle.dayrateAdjustmentFactor"
+      },
+      "isHidden": true
+    },
+    {
+      "name": "advertisedDayratePreRounding",
+      "type": "transform",
+      "fn": "max",
+      "params": {
+        "a": "advertisedDayrateWithFactorAdjustment",
+        "b": 0
+      }
+    },
+    {
+      "name": "advertisedDayrate",
+      "type": "transform",
+      "fn": "round",
+      "params": {
+        "amt": "advertisedDayratePreRounding"
+      }
+    },
+    {
+      "name": "roadsidePerDay",
+      "type": "dereference",
+      "objectPath": "inputs.pricingTier.rates.roadsidePerDay",
+      "propNamePath": "inputs.reservation.vehicle.assetType"
+    },
+    {
+      "name": "borrowerInsurancePerDayForAssetType",
+      "type": "dereference",
+      "objectPath": "inputs.pricingTier.rates.borrowerInsurancePerDay",
+      "propNamePath": "inputs.reservation.vehicle.assetType",
+      "isHidden": true
+    },
+    {
+      "name": "lenderInsurancePerDayForAssetType",
+      "type": "dereference",
+      "objectPath": "inputs.pricingTier.rates.lenderInsurancePerDay",
+      "propNamePath": "inputs.reservation.vehicle.assetType",
+      "isHidden": true
+    },
+    {
+      "name": "borrowerInsurancePerDay",
+      "type": "transform",
+      "fn": "ternary",
+      "params": {
+        "test": "inputs.reservation.borrowerCompany.hasPhysicalDamageInsurance",
+        "pass": 0,
+        "fail": "borrowerInsurancePerDayForAssetType"
+      }
+    },
+    {
+      "name": "lenderInsurancePerDay",
+      "type": "transform",
+      "fn": "ternary",
+      "params": {
+        "test": "inputs.reservation.lenderCompany.hasVehicleReplacementCoverage",
+        "pass": "lenderInsurancePerDayForAssetType",
+        "fail": 0
+      }
+    },
+    {
+      "name": "coopLiabilityInsurancePerDayForAssetType",
+      "type": "dereference",
+      "objectPath": "inputs.pricingTier.rates.coopLiabilityInsurancePerDay",
+      "propNamePath": "inputs.reservation.vehicle.assetType",
+      "isHidden": true
+    },
+    {
+      "name": "coopLiabilityInsurancePerDay",
+      "type": "transform",
+      "fn": "ternary",
+      "params": {
+        "test": "inputs.reservation.borrowerCompany.hasCOOPLiabilityInsurance",
+        "pass": "coopLiabilityInsurancePerDayForAssetType",
+        "fail": 0
+      }
+    },
+    {
+      "name": "borrowerEffectiveDayrate",
+      "type": "alias",
+      "mirror": "advertisedDayrate",
+      "comments": "Effective dayrate could incorporate dayrate-affecting items known at rental terms time. For now the borrower effectiveDayrate does not include any such terms. All dayrate-affecting items require usage info."
+    },
+    {
+      "name": "lenderEffectiveDayrate",
+      "type": "transform",
+      "fn": "sub",
+      "params": {
+        "a": "advertisedDayrate",
+        "b": "lenderInsurancePerDay"
+      },
+      "comments": "Effective dayrate could incorporate dayrate-affecting items known at rental terms time. For the lender we deduct per-day insurance up-front."
+    }
+  ],
+  "flowCalcVersion": "0.5.4",
+  "updatedAt": "2022-07-25T21:55:17.543Z",
+  "createdAt": "2022-07-25T21:55:17.543Z",
+  "__v": 0
+}

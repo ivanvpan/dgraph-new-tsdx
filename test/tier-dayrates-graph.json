@@ -1,0 +1,340 @@
+{
+  "_id": "62df1145e75b3e001fcc2dc2",
+  "isTemplate": true,
+  "type": "graph",
+  "deleted": false,
+  "namespace": "tier-day-rate",
+  "name": "default",
+  "version": 4,
+  "data": [
+    {
+      "comments": "Note for now, if the pricing is not found, the graph will not resolve. So precondition for using this is that pricingTier.pricings does contain a pricing with vehiclePropsHash.",
+      "name": "vehiclePricing",
+      "type": "transform",
+      "fn": "find",
+      "params": {
+        "collection": "inputs.pricingTier.pricings",
+        "propName": "vehiclePropsHash",
+        "propValue": "inputs.vehiclePropsHash"
+      },
+      "isHidden": true
+    },
+    {
+      "comments": "Define the vehicle asset type (including vans).",
+      "name": "vehicleAssetTypeResolver",
+      "type": "graph",
+      "graphDef": [
+        {
+          "comments": "Define tractor asset type.",
+          "name": "resolveTractor",
+          "type": "static",
+          "value": "tractor",
+          "isHidden": true
+        },
+        {
+          "comments": "Define trailer asset type.",
+          "name": "resolveTrailer",
+          "type": "static",
+          "value": "trailer",
+          "isHidden": true
+        },
+        {
+          "comments": "Define wether or not the given vehicle has has a size of van. Note: VAN is being used as an asset type by users but as a vehicle size in mongo.",
+          "name": "hasVanSize",
+          "type": "transform",
+          "fn": "eq",
+          "params": {
+            "a": "inputs.vehicleSize",
+            "b": "van"
+          },
+          "isHidden": true
+        },
+        {
+          "comments": "This node should be called after checking that the mongo assetType is truck. If mongo vehicle size is van then we can say that the vehicle asset type is van otherwise is truck.",
+          "name": "isTruckOrVan",
+          "type": "transform",
+          "fn": "ternary",
+          "params": {
+            "test": "hasVanSize",
+            "pass": "inputs.vehicleSize",
+            "fail": "inputs.vehicleAssetType"
+          },
+          "isHidden": true
+        },
+        {
+          "comments": "Resolve mongo assetType to user assetType.",
+          "name": "assetType",
+          "type": "branch",
+          "test": "inputs.vehicleAssetType",
+          "cases": [
+            "truck",
+            "tractor",
+            "trailer"
+          ],
+          "nodeNames": [
+            "isTruckOrVan",
+            "resolveTractor",
+            "resolveTrailer"
+          ]
+        }
+      ],
+      "inputs": {
+        "vehicleSize": "inputs.vehicleSize",
+        "vehicleAssetType": "inputs.vehicleAssetType"
+      },
+      "isHidden": true
+    },
+    {
+      "name": "is-between",
+      "type": "graph",
+      "isTemplate": true,
+      "graphDef": [
+        {
+          "name": "gtLow",
+          "type": "transform",
+          "fn": "gt",
+          "params": {
+            "a": "inputs.value",
+            "b": "inputs.low"
+          },
+          "isHidden": true
+        },
+        {
+          "name": "gteLow",
+          "type": "transform",
+          "fn": "gte",
+          "params": {
+            "a": "inputs.value",
+            "b": "inputs.low"
+          },
+          "isHidden": true
+        },
+        {
+          "name": "lowIsNull",
+          "type": "transform",
+          "fn": "isNull",
+          "params": {
+            "item": "inputs.low"
+          },
+          "isHidden": true
+        },
+        {
+          "name": "lowConditionPass",
+          "type": "transform",
+          "fn": "ternary",
+          "params": {
+            "test": "inputs.includesLow",
+            "pass": "gteLow",
+            "fail": "gtLow"
+          },
+          "isHidden": true
+        },
+        {
+          "comments": "If low is null that means range doesn't have low limit.",
+          "name": "lowPass",
+          "type": "transform",
+          "fn": "ternary",
+          "params": {
+            "test": "lowIsNull",
+            "pass": true,
+            "fail": "lowConditionPass"
+          },
+          "isHidden": true
+        },
+        {
+          "name": "ltHigh",
+          "type": "transform",
+          "fn": "lt",
+          "params": {
+            "a": "inputs.value",
+            "b": "inputs.high"
+          },
+          "isHidden": true
+        },
+        {
+          "name": "lteHigh",
+          "type": "transform",
+          "fn": "lte",
+          "params": {
+            "a": "inputs.value",
+            "b": "inputs.high"
+          },
+          "isHidden": true
+        },
+        {
+          "name": "highIsNull",
+          "type": "transform",
+          "fn": "isNull",
+          "params": {
+            "item": "inputs.high"
+          },
+          "isHidden": true
+        },
+        {
+          "name": "highConditionPass",
+          "type": "transform",
+          "fn": "ternary",
+          "params": {
+            "test": "inputs.includesHigh",
+            "pass": "lteHigh",
+            "fail": "ltHigh"
+          },
+          "isHidden": true
+        },
+        {
+          "comments": "If high is null that means range doesn't have high limit.",
+          "name": "highPass",
+          "type": "transform",
+          "fn": "ternary",
+          "params": {
+            "test": "highIsNull",
+            "pass": true,
+            "fail": "highConditionPass"
+          },
+          "isHidden": true
+        },
+        {
+          "name": "isBetween",
+          "type": "transform",
+          "fn": "andN",
+          "params": [
+            "lowPass",
+            "highPass"
+          ]
+        }
+      ],
+      "isHidden": true
+    },
+    {
+      "name": "vehicleMultipliers",
+      "type": "graph",
+      "graphDef": [
+        {
+          "name": "truckAgeMultipliers",
+          "type": "alias",
+          "mirror": "inputs.multipliers.age.truck",
+          "isHidden": true
+        },
+        {
+          "name": "tractorAgeMultipliers",
+          "type": "alias",
+          "mirror": "inputs.multipliers.age.tractor",
+          "isHidden": true
+        },
+        {
+          "name": "trailerAgeMultipliers",
+          "type": "alias",
+          "mirror": "inputs.multipliers.age.trailer",
+          "isHidden": true
+        },
+        {
+          "name": "vanAgeMultipliers",
+          "type": "alias",
+          "mirror": "inputs.multipliers.age.van",
+          "isHidden": true
+        },
+        {
+          "comments": "Resolve age multiplier for a vehicle by its asset type.",
+          "name": "ageMultipliers",
+          "type": "branch",
+          "test": "inputs.assetType",
+          "cases": [
+            "truck",
+            "tractor",
+            "trailer",
+            "van"
+          ],
+          "nodeNames": [
+            "truckAgeMultipliers",
+            "tractorAgeMultipliers",
+            "trailerAgeMultipliers",
+            "vanAgeMultipliers"
+          ],
+          "isHidden": true
+        },
+        {
+          "name": "mapItem",
+          "type": "graph",
+          "isTemplate": true,
+          "graphDef": [
+            {
+              "name": "multiplier",
+              "type": "alias",
+              "mirror": "inputs.item.multiplier"
+            },
+            {
+              "name": "multiplierResolutions",
+              "type": "graph",
+              "graphDef": "is-between",
+              "inputs": {
+                "value": "inputs.vehicleAge",
+                "low": "inputs.item.range.low",
+                "high": "inputs.item.range.high",
+                "includesLow": "inputs.item.range.isInclusive.low",
+                "includesHigh": "inputs.item.range.isInclusive.high"
+              }
+            },
+            {
+              "name": "isInRange",
+              "type": "alias",
+              "mirror": "multiplierResolutions.isBetween"
+            }
+          ]
+        },
+        {
+          "name": "ageMultipliersRangesResolutions",
+          "type": "graph",
+          "graphDef": "mapItem",
+          "collectionMode": "map",
+          "inputs": {
+            "collection": "ageMultipliers.*",
+            "vehicleAge": "inputs.vehicleAge"
+          }
+        },
+        {
+          "name": "ageMultipliersRangesResolution",
+          "type": "transform",
+          "fn": "find",
+          "params": {
+            "collection": "ageMultipliersRangesResolutions.*",
+            "propName": "isInRange",
+            "propValue": true
+          }
+        },
+        {
+          "name": "ageMultiplier",
+          "type": "alias",
+          "mirror": "ageMultipliersRangesResolution.multiplier"
+        },
+        {
+          "name": "recommendedRate",
+          "type": "transform",
+          "fn": "addFactor",
+          "params": {
+            "amt": "inputs.basePrice",
+            "factor": "ageMultiplier"
+          }
+        }
+      ],
+      "inputs": {
+        "basePrice": "vehiclePricing.basePrice",
+        "multipliers": "inputs.pricingTier.multipliers",
+        "assetType": "vehicleAssetTypeResolver.assetType",
+        "vehicleAge": "inputs.vehicleAge"
+      },
+      "isHidden": true
+    },
+    {
+      "name": "tierDayrate",
+      "type": "transform",
+      "fn": "round",
+      "params": {
+        "amt": "vehicleMultipliers.recommendedRate"
+      }
+    }
+  ],
+  "flowCalcVersion": "0.5.4",
+  "updatedAt": "2022-07-25T21:55:17.524Z",
+  "createdAt": "2022-07-25T21:55:17.524Z",
+  "__v": 0
+}

@@ -273,7 +273,6 @@ const STEP_TYPE_RESOLVERS: { [stepType: string]: Function } = {
           },
           output: {},
         })
-        console.log('subgraph execution result', result)
         setValueInContext(context, step.namespace, result, step.isHidden)
         debug(`=== subgraph end: ${name}`)
       } else {
@@ -372,9 +371,8 @@ function executeStep(
   context: Context,
   runInParentContext = false
 ) {
-  // console.log(step, graph, context, runInParentContext)
   if (context.executedSteps[step.name]) {
-    console.log('already ran', step.name)
+    debug(`already ran ${step.name}`, true)
     return
   }
   context.executedSteps[step.name] = true
