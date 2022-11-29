@@ -36,7 +36,7 @@ describe('General graph features', () => {
       ],
     }
     const input = {
-      addUs: [1,2,3],
+      addUs: [1, 2, 3],
     }
 
     const result = executeGraph(graph as DbGraph, input)
@@ -339,7 +339,7 @@ describe('General graph features', () => {
       const input = {}
 
       const result = executeGraph(graph as DbGraph, input)
-      expect(result.result).toBeUndefined
+      expect(result.result).toBeUndefined()
     })
 
     it('can reference values from parent runtime as inputs', () => {

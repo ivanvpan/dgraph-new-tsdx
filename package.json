@@ -7,6 +7,9 @@
     "dist",
     "src"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "engines": {
     "node": ">=10"
   },
@@ -15,7 +18,9 @@
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "lint-fix": "tsdx lint --fix",
+    "augment-dist": "cp {package.json,yarn.lock,README.md} ./dist",
+    "prepublishOnly": "tsdx lint && tsdx test && tsdx build && yarn augment-dist"
   },
   "peerDependencies": {},
   "husky": {
@@ -29,7 +34,7 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "dgraph-new",
+  "name": "@99s/dgraph-new",
   "author": "Ivan P",
   "module": "dist/dgraph-new.esm.js",
   "size-limit": [
