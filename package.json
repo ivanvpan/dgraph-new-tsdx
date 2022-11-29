@@ -1,4 +1,5 @@
 {
+  "name": "@99s/dgraph-new",
   "version": "1.0.0",
   "license": "MIT",
   "main": "dist/index.js",
@@ -34,7 +35,6 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "@99s/dgraph-new",
   "author": "Ivan P",
   "module": "dist/dgraph-new.esm.js",
   "size-limit": [
